@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH3. LLM 파이프라인 시각화</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ========================================= */
+  /* 🌟 사장님 맞춤형 확장 UI & 가운데 정렬 완결판 🌟 */
+  /* ========================================= */
+  
+  /* 1. 가로 넓이 확대 및 완벽한 가운데 정렬 */
+  .wrap { 
+    max-width: 96% !important; /* 화면 가로폭의 96%까지 시원하게 사용 */
+    width: 100% !important;
+    margin: 0 auto !important; /* 양옆 여백을 정확히 반반씩 나누어 무조건 가운데 정렬 */
+  }
+
+  /* 2. 전체 글자 크기 1.3배 확대 (가로가 넓어진 만큼 글자도 시원하게) */
+  html { font-size: 21px !important; }
+
+  /* 3. 각 영역(박스)을 더 입체적이고 고급스럽게 표현 (입체 그림자 & 테두리) */
+  .section, .panel, .illust, .card, .sim-panel {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 16px !important;
+  }
+
+  /* 4. 제목에 은은한 빛 효과를 주어 가독성 및 세련미 향상 */
+  .hdr h1 {
+    text-shadow: 0 4px 20px rgba(255, 255, 255, 0.15) !important;
+  }
+
+  /* 5. 버튼이나 탭에 마우스를 올렸을 때 살짝 떠오르는 부드러운 애니메이션 */
+  button, .tab {
+    transition: all 0.2s ease-in-out !important;
+  }
+  button:not(:disabled):hover, .tab:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.2);
+  }
+  /* ========================================= */
+:root {
+  --bg: #0B1120;
+  --bg2: #141E33;
+  --bg3: #1C2A47;
+  --blue: #3B82F6;
+  --cyan: #06B6D4;
+  --green: #10B981;
+  --orange: #F59E0B;
+  --pink: #EC4899;
+  --purple: #8B5CF6;
+  --red: #EF4444;
+  --white: #F1F5F9;
+  --muted: #94A3B8;
+  --dimmed: #64748B;
+  --font: 'Noto Sans KR', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--white); font-family:var(--font); min-height:100vh; }
+body::after { content:''; position:fixed; inset:0; background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E"); pointer-events:none; z-index:9999; }
+
+.wrap { max-width:900px; margin:0 auto; padding:1.5rem; }
+
+/* Header */
+.hdr { text-align:center; margin-bottom:1.5rem; }
+.hdr-tag { font-family:var(--mono); font-size:0.65rem; color:var(--blue); letter-spacing:4px; text-transform:uppercase; margin-bottom:0.4rem; }
+.hdr h1 { font-size:1.8rem; font-weight:900; background:linear-gradient(135deg,var(--white),var(--blue)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:0.3rem; }
+.hdr p { color:var(--muted); font-size:0.85rem; font-weight:300; }
+
+/* Progress bar */
+.progress { display:flex; gap:4px; margin-bottom:1.5rem; }
+.prog-seg { flex:1; height:4px; border-radius:2px; background:var(--bg3); transition:background 0.5s; }
+.prog-seg.done-0 { background:var(--blue); }
+.prog-seg.done-1 { background:var(--purple); }
+.prog-seg.done-2 { background:var(--green); }
+.prog-seg.done-3 { background:var(--orange); }
+.prog-seg.done-4 { background:var(--pink); }
+
+/* Current input display */
+.cur-input {
+  background:var(--bg2); border:1px solid rgba(59,130,246,0.15); border-radius:10px;
+  padding:0.75rem 1rem; margin-bottom:1rem; display:flex; align-items:center; gap:0.75rem;
+  font-size:0.85rem;
+}
+.cur-label { font-family:var(--mono); font-size:0.6rem; color:var(--blue); letter-spacing:2px; white-space:nowrap; text-transform:uppercase; }
+.cur-text { font-weight:700; font-size:1.1rem; }
+.cur-text .generated { color:var(--cyan); }
+.cursor-blink { display:inline-block; width:2px; height:1.1rem; background:var(--cyan); animation:blink 1s infinite; vertical-align:middle; margin-left:2px; }
+@keyframes blink { 0%,50%{opacity:1}51%,100%{opacity:0} }
+
+/* Stage area */
+.stage {
+  background:var(--bg2); border:1px solid rgba(255,255,255,0.06); border-radius:14px;
+  padding:1.5rem; min-height:320px; position:relative; overflow:hidden; margin-bottom:1rem;
+}
+.stage-top { position:absolute; top:0; left:0; right:0; height:3px; }
+.stage-header { display:flex; align-items:center; gap:0.75rem; margin-bottom:1.25rem; }
+.stage-icon { font-size:1.5rem; }
+.stage-title { font-size:1.1rem; font-weight:900; }
+.stage-sub { font-size:0.75rem; color:var(--muted); }
+.stage-step { font-family:var(--mono); font-size:0.6rem; color:var(--dimmed); letter-spacing:2px; margin-left:auto; }
+
+.stage-body { position:relative; }
+
+/* Tokens */
+.tk { display:inline-block; padding:0.3rem 0.65rem; margin:0.15rem; border-radius:5px; font-family:var(--mono); font-size:0.85rem; font-weight:600; opacity:0; transform:translateY(8px); transition:all 0.4s ease; }
+.tk.show { opacity:1; transform:translateY(0); }
+.tk-blue { background:rgba(59,130,246,0.15); color:var(--blue); border:1px solid rgba(59,130,246,0.25); }
+.tk-purple { background:rgba(139,92,246,0.15); color:var(--purple); border:1px solid rgba(139,92,246,0.25); }
+.tk-green { background:rgba(16,185,129,0.15); color:var(--green); border:1px solid rgba(16,185,129,0.25); }
+
+/* Arrow down */
+.arr { text-align:center; color:var(--dimmed); font-size:1rem; margin:0.75rem 0; opacity:0; transition:opacity 0.4s; }
+.arr.show { opacity:1; }
+
+/* ID boxes */
+.id-row { display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center; }
+.id-box { font-family:var(--mono); font-size:0.8rem; padding:0.3rem 0.6rem; border-radius:5px; background:rgba(59,130,246,0.1); color:var(--blue); border:1px solid rgba(59,130,246,0.2); opacity:0; transform:scale(0.8); transition:all 0.4s; }
+.id-box.show { opacity:1; transform:scale(1); }
+
+/* Vector vis */
+.vec-row { display:flex; gap:0.3rem; align-items:center; margin-bottom:0.5rem; opacity:0; transform:translateX(-10px); transition:all 0.5s; }
+.vec-row.show { opacity:1; transform:translateX(0); }
+.vec-label { font-family:var(--mono); font-size:0.75rem; color:var(--muted); width:50px; text-align:right; }
+.vec-bar { display:flex; gap:1px; flex:1; }
+.vec-cell { width:3px; border-radius:1px; transition:height 0.3s; }
+
+/* Transformer layers */
+.layer-stack { display:flex; flex-direction:column; gap:3px; }
+.layer-bar { height:6px; border-radius:3px; background:var(--bg3); position:relative; overflow:hidden; }
+.layer-fill { position:absolute; top:0; left:0; height:100%; border-radius:3px; background:var(--green); width:0%; transition:width 0.15s linear; }
+.layer-info { display:flex; justify-content:space-between; font-family:var(--mono); font-size:0.65rem; color:var(--dimmed); margin-top:0.3rem; }
+
+/* Logit bars */
+.logit-row { display:flex; align-items:center; gap:0.5rem; margin-bottom:0.35rem; opacity:0; transition:all 0.4s; }
+.logit-row.show { opacity:1; }
+.logit-label { font-family:var(--mono); font-size:0.8rem; color:var(--white); width:55px; text-align:right; font-weight:600; }
+.logit-track { flex:1; height:22px; background:rgba(255,255,255,0.04); border-radius:3px; overflow:hidden; }
+.logit-fill { height:100%; border-radius:3px; width:0%; transition:width 0.8s ease-out; display:flex; align-items:center; padding-left:6px; font-family:var(--mono); font-size:0.65rem; font-weight:600; }
+.logit-val { font-family:var(--mono); font-size:0.7rem; color:var(--dimmed); width:55px; text-align:right; }
+
+/* Dice */
+.dice-area { text-align:center; padding:1rem 0; }
+.dice { font-size:3.5rem; display:inline-block; transition:transform 0.1s; }
+.dice.rolling { animation:roll 0.12s infinite; }
+@keyframes roll { 0%{transform:rotate(0deg) scale(1)} 25%{transform:rotate(90deg) scale(1.1)} 50%{transform:rotate(180deg) scale(1)} 75%{transform:rotate(270deg) scale(1.1)} 100%{transform:rotate(360deg) scale(1)} }
+.dice-result { font-size:1.5rem; font-weight:900; margin-top:0.75rem; opacity:0; transition:opacity 0.5s; }
+.dice-result.show { opacity:1; }
+
+/* Explanation text */
+.explain { font-size:0.8rem; color:var(--dimmed); line-height:1.7; margin-top:0.75rem; padding:0.75rem; background:rgba(0,0,0,0.2); border-radius:8px; border-left:3px solid var(--dimmed); }
+.explain .hl { color:var(--white); font-weight:700; }
+.explain .hlc { font-weight:700; }
+
+/* Controls */
+.controls { display:flex; justify-content:center; gap:0.75rem; margin-bottom:1.5rem; }
+.btn {
+  background:var(--bg2); border:1px solid rgba(255,255,255,0.1); color:var(--white);
+  padding:0.6rem 1.5rem; border-radius:8px; font-family:var(--font); font-size:0.85rem; font-weight:600;
+  cursor:pointer; transition:all 0.3s; display:flex; align-items:center; gap:0.4rem;
+}
+.btn:hover { border-color:rgba(255,255,255,0.25); transform:translateY(-1px); }
+.btn-primary { background:linear-gradient(135deg,var(--cyan),var(--blue)); border:none; color:var(--bg); }
+.btn-primary:hover { box-shadow:0 4px 15px rgba(6,182,212,0.3); }
+.btn:disabled { opacity:0.3; cursor:not-allowed; transform:none; }
+
+/* Iteration counter */
+.iter-counter {
+  text-align:center; margin-bottom:0.75rem;
+  font-family:var(--mono); font-size:0.7rem; color:var(--dimmed); letter-spacing:1px;
+}
+.iter-counter span { color:var(--cyan); font-weight:700; font-size:0.85rem; }
+
+/* Footer */
+.footer { text-align:center; padding:1.5rem 0; color:var(--dimmed); font-size:0.65rem; border-top:1px solid rgba(255,255,255,0.04); margin-top:1rem; }
+
+/* Responsive */
+@media(max-width:600px) {
+  .hdr h1 { font-size:1.4rem; }
+  .stage { padding:1rem; min-height:280px; }
+}
+
+/* Pipeline Architecture Diagram */
+.arch-flow{background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:1rem .75rem;margin-bottom:1.25rem;overflow-x:auto}
+.arch-flow-title{font-size:.75rem;font-weight:700;color:var(--dimmed);margin-bottom:.6rem;text-align:center;font-family:var(--mono);letter-spacing:1px}
+.arch-pipe{display:flex;align-items:center;gap:0;min-width:850px}
+.arch-node{text-align:center;position:relative;flex-shrink:0}
+.arch-node .a-label{font-size:.6rem;font-weight:700;margin-bottom:.3rem}
+.arch-arrow{color:var(--dimmed);font-size:.9rem;padding:0 .2rem;flex-shrink:0;margin-top:.5rem}
+
+/* Vector shape visualizations */
+.vec-shape{background:var(--bg3);border-radius:6px;padding:.4rem;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.06);transition:all .4s;position:relative}
+.vec-shape.lit{border-color:rgba(255,255,255,.15)}
+.vec-shape .a-desc{font-family:var(--mono);font-size:.5rem;color:var(--dimmed);margin-top:.2rem;text-align:center}
+
+/* Input: text box */
+.v-input{width:100px;min-height:55px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.65rem;color:var(--white);line-height:1.4}
+.v-input.lit{box-shadow:0 0 12px rgba(241,245,249,.12)}
+
+/* Token IDs: row of small boxes */
+.v-ids{display:flex;gap:2px;padding:.25rem .3rem;min-height:55px;align-items:center}
+.v-id-cell{width:22px;height:22px;border-radius:3px;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.2);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.35rem;color:var(--blue);font-weight:700}
+.v-ids.lit{box-shadow:0 0 12px rgba(59,130,246,.2)}
+
+/* Embedding matrix: n_token x 12288 */
+.v-embed{display:flex;flex-direction:column;gap:1px;padding:.3rem;min-height:55px;justify-content:center}
+.v-embed-row{display:flex;gap:1px}
+.v-embed-cell{width:3px;height:8px;border-radius:1px;background:rgba(139,92,246,.3)}
+.v-embed.lit{box-shadow:0 0 12px rgba(139,92,246,.2)}
+.v-embed.lit .v-embed-cell{background:rgba(139,92,246,.6)}
+
+/* LLM block */
+.v-llm{width:80px;min-height:65px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px solid rgba(16,185,129,.2);border-radius:10px;background:var(--bg3)}
+.v-llm .llm-icon{font-size:1.5rem}
+.v-llm .llm-name{font-size:.7rem;font-weight:900;color:var(--green)}
+.v-llm .llm-layers{font-family:var(--mono);font-size:.45rem;color:var(--dimmed)}
+.v-llm.lit{border-color:rgba(16,185,129,.4);box-shadow:0 0 15px rgba(16,185,129,.15)}
+
+/* Probability vector: labeled token rows */
+.v-prob-list{padding:.25rem .3rem;display:flex;flex-direction:column;gap:1px}
+.vp-r{display:flex;align-items:center;gap:.25rem;height:13px}
+.vp-tk{font-family:var(--mono);font-size:.48rem;width:35px;text-align:right;flex-shrink:0;overflow:hidden;white-space:nowrap}
+.vp-tr{flex:1;height:9px;background:rgba(255,255,255,.03);border-radius:2px;overflow:hidden}
+.vp-fl{height:100%;border-radius:2px;transition:width .5s}
+.vp-pc{font-family:var(--mono);font-size:.42rem;width:28px;text-align:right;flex-shrink:0}
+.vp-tot{display:flex;justify-content:space-between;align-items:center;margin-top:2px;padding-top:2px;border-top:1px solid rgba(255,255,255,.04)}
+.v-prob-list.lit{box-shadow:0 0 12px rgba(245,158,11,.2)}
+
+/* Output token */
+.v-output{width:65px;min-height:55px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:1.1rem;font-weight:900}
+.v-output.lit{box-shadow:0 0 12px rgba(6,182,212,.2)}
+
+.arch-box.s1{border-top-color:var(--white)}.arch-box.s1 .a-name{color:var(--white)}
+.arch-box.s2{border-top-color:var(--blue)}.arch-box.s2 .a-name{color:var(--blue)}
+.arch-box.s3{border-top-color:var(--purple)}.arch-box.s3 .a-name{color:var(--purple)}
+.arch-box.s4{border-top-color:var(--green)}.arch-box.s4 .a-name{color:var(--green)}
+.arch-box.s5{border-top-color:var(--orange)}.arch-box.s5 .a-name{color:var(--orange)}
+.arch-box.s6{border-top-color:var(--cyan)}.arch-box.s6 .a-name{color:var(--cyan)}
+
+.arch-box.s1.lit{box-shadow:0 0 12px rgba(241,245,249,.15)}
+.arch-box.s2.lit{box-shadow:0 0 12px rgba(59,130,246,.2)}
+.arch-box.s3.lit{box-shadow:0 0 12px rgba(139,92,246,.2)}
+.arch-box.s4.lit{box-shadow:0 0 12px rgba(16,185,129,.2)}
+.arch-box.s5.lit{box-shadow:0 0 12px rgba(245,158,11,.2)}
+.arch-box.s6.lit{box-shadow:0 0 12px rgba(6,182,212,.2)}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <div class="hdr-tag">LLM Pipeline Visualization</div>
+    <h1>다음 단어 맞추기의 여정</h1>
+    <p>"서울의 인구수는?" → AI가 한 토큰씩 답을 만들어가는 과정</p>
+  </div>
+
+  
+  <!-- Pipeline Architecture Diagram -->
+  <div class="arch-flow">
+    <div class="arch-flow-title">LLM 파이프라인 — 데이터가 흐르는 모양</div>
+    <div class="arch-pipe">
+      <!-- User Input -->
+      <div class="arch-node">
+        <div class="a-label" style="color:var(--white)">사용자 입력</div>
+        <div class="vec-shape v-input" id="ab0">
+          <div>"서울의<br>인구수는?"</div>
+        </div>
+        <div class="a-desc">자연어 문장</div>
+      </div>
+
+      <div class="arch-arrow">→</div>
+
+      <!-- Tokenizer output: ID boxes -->
+      <div class="arch-node">
+        <div class="a-label" style="color:var(--blue)">🔤 토크나이저</div>
+        <div class="vec-shape v-ids" id="ab1">
+          <div class="v-id-cell">34521</div>
+          <div class="v-id-cell">238</div>
+          <div class="v-id-cell">18903</div>
+          <div class="v-id-cell">44210</div>
+          <div class="v-id-cell">30</div>
+        </div>
+        <div class="a-desc">5개 토큰 ID</div>
+      </div>
+
+      <div class="arch-arrow">→</div>
+
+      <!-- Embedding: n_token x 12288 matrix -->
+      <div class="arch-node">
+        <div class="a-label" style="color:var(--purple)">📐 임베딩</div>
+        <div class="vec-shape v-embed" id="ab2">
+          <div class="v-embed-row"><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div></div><div class="v-embed-row"><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div></div><div class="v-embed-row"><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div></div><div class="v-embed-row"><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div></div><div class="v-embed-row"><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div><div class="v-embed-cell"></div></div>
+        </div>
+        <div class="a-desc">[5 × 12,288] 행렬</div>
+      </div>
+
+      <div class="arch-arrow">→</div>
+
+      <!-- LLM (Transformer) -->
+      <div class="arch-node">
+        <div class="a-label" style="color:var(--green)">트랜스포머</div>
+        <div class="vec-shape v-llm" id="ab3">
+          <div class="llm-icon">🧠</div>
+          <div class="llm-name">LLM</div>
+          <div class="llm-layers">96층 × Attention</div>
+        </div>
+        <div class="a-desc">문맥 이해 + 추론</div>
+      </div>
+
+      <div class="arch-arrow">→</div>
+
+      <!-- Probability vector: labeled rows -->
+      <div class="arch-node" style="min-width:180px">
+        <div class="a-label" style="color:var(--orange)">🎯 확률 변환 (Softmax)</div>
+        <div class="vec-shape v-prob-list" id="ab4">
+          <div class="vp-r"><span class="vp-tk" style="font-weight:700;color:var(--cyan)">"약"</span><div class="vp-tr"><div class="vp-fl" style="width:100.0%;background:#06B6D4"></div></div><span class="vp-pc" style="font-weight:700;color:var(--cyan)">62.0%</span></div>
+<div class="vp-r"><span class="vp-tk" style="color:var(--dimmed)">"9"</span><div class="vp-tr"><div class="vp-fl" style="width:19.35483870967742%;background:#3B82F6"></div></div><span class="vp-pc" style="color:var(--dimmed)">12.0%</span></div>
+<div class="vp-r"><span class="vp-tk" style="color:var(--dimmed)">"대"</span><div class="vp-tr"><div class="vp-fl" style="width:12.903225806451612%;background:#8B5CF6"></div></div><span class="vp-pc" style="color:var(--dimmed)">8.0%</span></div>
+<div class="vp-r"><span class="vp-tk" style="color:var(--dimmed)">"서울"</span><div class="vp-tr"><div class="vp-fl" style="width:4.838709677419355%;background:#64748B"></div></div><span class="vp-pc" style="color:var(--dimmed)">3.0%</span></div>
+<div class="vp-r"><span class="vp-tk" style="color:var(--dimmed)">"천"</span><div class="vp-tr"><div class="vp-fl" style="width:4.032258064516129%;background:#64748B"></div></div><span class="vp-pc" style="color:var(--dimmed)">2.5%</span></div>
+<div class="vp-r"><span class="vp-tk" style="color:var(--dimmed)">"한국"</span><div class="vp-tr"><div class="vp-fl" style="width:2.903225806451613%;background:#64748B"></div></div><span class="vp-pc" style="color:var(--dimmed)">1.8%</span></div>
+<div class="vp-r"><span class="vp-tk" style="color:var(--dimmed)">"많"</span><div class="vp-tr"><div class="vp-fl" style="width:1.935483870967742%;background:#475569"></div></div><span class="vp-pc" style="color:var(--dimmed)">1.2%</span></div>
+<div class="vp-r"><span class="vp-tk" style="color:var(--dimmed)">"인구"</span><div class="vp-tr"><div class="vp-fl" style="width:1.4516129032258065%;background:#475569"></div></div><span class="vp-pc" style="color:var(--dimmed)">0.9%</span></div>
+<div class="vp-r"><span class="vp-tk" style="color:var(--dimmed)">"수도"</span><div class="vp-tr"><div class="vp-fl" style="width:0.8064516129032258%;background:#475569"></div></div><span class="vp-pc" style="color:var(--dimmed)">0.5%</span></div>
+<div class="vp-r"><span class="vp-tk" style="color:var(--dimmed)">"세계"</span><div class="vp-tr"><div class="vp-fl" style="width:0.8%;background:#334155"></div></div><span class="vp-pc" style="color:var(--dimmed)">0.3%</span></div>
+<div class="vp-r"><span class="vp-tk" style="color:var(--dimmed)">"바나나"</span><div class="vp-tr"><div class="vp-fl" style="width:0.8%;background:#1E293B"></div></div><span class="vp-pc" style="color:var(--dimmed)">0.0001%</span></div>
+<div class="vp-r"><span class="vp-tk" style="color:var(--dimmed)">⋮</span><div style="flex:1;font-family:var(--mono);font-size:.45rem;color:var(--dimmed);text-align:center">... 나머지 ~99,989개 (각 ≈0%)</div><span class="vp-pc" style="color:var(--dimmed)">≈0%</span></div>
+<div class="vp-tot"><span style="font-size:.45rem;color:var(--dimmed)">전체 100,000개</span><span style="font-family:var(--mono);font-size:.5rem;color:var(--orange);font-weight:700">Σ = 1.0</span></div>
+        </div>
+        <div class="a-desc">100,000개 토큰 확률분포</div>
+      </div>
+
+      <div class="arch-arrow">→</div>
+
+      <!-- Output token -->
+      <div class="arch-node">
+        <div class="a-label" style="color:var(--cyan)">🎲 출력</div>
+        <div class="vec-shape v-output" id="ab5">
+          <div style="font-size:1.3rem">🎲</div>
+          <div style="font-size:.7rem;color:var(--cyan);font-weight:900">"약"</div>
+        </div>
+        <div class="a-desc">샘플링 결과</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="progress" id="progress"></div>
+
+  <div class="cur-input">
+    <span class="cur-label">현재 입력</span>
+    <span class="cur-text" id="curText">서울의 인구수는?<span class="cursor-blink"></span></span>
+  </div>
+
+  <div class="iter-counter">토큰 생성 <span id="iterNum">0</span> / <span id="iterTotal">6</span></div>
+
+  <div class="stage" id="stage">
+    <div class="stage-top" id="stageTop"></div>
+    <div class="stage-header" id="stageHeader"></div>
+    <div class="stage-body" id="stageBody"></div>
+  </div>
+
+  <div class="controls">
+    <button class="btn" id="btnReset" onclick="resetAll()">↺ 처음부터</button>
+    <button class="btn btn-primary" id="btnNext" onclick="nextPhase()">▶ 다음 단계</button>
+  </div>
+
+  <div class="footer">CEO AI Intelligence · LLM Pipeline Visualization · 2026</div>
+</div>
+
+<script>
+// State
+let currentIter = 0;    // which token generation iteration (0-5)
+let currentPhase = -1;  // which phase within an iteration (0-4)
+let isAnimating = false;
+
+const inputBase = "서울의 인구수는?";
+const generatedTokens = ["약", " 9", "70만", " 명", "입니다", ""];
+const fullTokensList = [
+  ["서울","의","인구","수는","?"],
+  ["서울","의","인구","수는","?","약"],
+  ["서울","의","인구","수는","?","약","9"],
+  ["서울","의","인구","수는","?","약","970만"],
+  ["서울","의","인구","수는","?","약","970만","명"],
+  ["서울","의","인구","수는","?","약","970만","명입니다"],
+];
+const tokenIds = [
+  [34521,238,18903,44210,30],
+  [34521,238,18903,44210,30,8821],
+  [34521,238,18903,44210,30,8821,29],
+  [34521,238,18903,44210,30,8821,51023],
+  [34521,238,18903,44210,30,8821,51023,9102],
+  [34521,238,18903,44210,30,8821,51023,9102,22847],
+];
+
+const probData = [
+  { top: [{t:"약",p:62,s:8.92},{t:"9",p:12,s:7.15},{t:"대",p:8,s:2.87},{t:"서울",p:0.3,s:3.21},{t:"바나나",p:0.00001,s:-12.3}], pick:"약" },
+  { top: [{t:"9",p:58,s:8.1},{t:"천",p:15,s:5.2},{t:"1",p:10,s:4.8},{t:"백",p:3,s:1.2},{t:"만",p:2,s:0.8}], pick:"9" },
+  { top: [{t:"70만",p:45,s:7.8},{t:"50만",p:12,s:5.1},{t:"백만",p:10,s:4.5},{t:"00만",p:8,s:3.9},{t:"만",p:5,s:2.1}], pick:"70만" },
+  { top: [{t:"명",p:72,s:9.5},{t:"만",p:8,s:4.2},{t:"여",p:5,s:3.1},{t:"입",p:3,s:1.8},{t:"정도",p:2,s:0.9}], pick:"명" },
+  { top: [{t:"입니다",p:68,s:9.1},{t:"이다",p:12,s:5.8},{t:"정도",p:6,s:3.2},{t:"으로",p:3,s:1.5},{t:"이며",p:2,s:0.7}], pick:"입니다" },
+  { top: [{t:"[종료]",p:85,s:11.2},{t:".",p:5,s:2.1},{t:"그리고",p:2,s:0.5},{t:"또한",p:1,s:-0.3},{t:"하지만",p:0.5,s:-1.2}], pick:"[종료]" },
+];
+
+const phaseColors = ["var(--blue)","var(--purple)","var(--green)","var(--orange)","var(--pink)"];
+const phaseNames = ["토큰화","임베딩","트랜스포머","출력 변환","확률 · 선택"];
+const phaseIcons = ["🔤","📐","🧠","🎯","🎲"];
+const phaseSubs = [
+  "문장을 토큰으로 분해하고 ID로 변환",
+  "토큰 ID를 12,288차원 의미 벡터로 변환",
+  "96개 층을 통과하며 문맥을 이해",
+  "Logit 점수를 Softmax로 확률 변환",
+  "10만 면 주사위를 굴려 다음 토큰 선택"
+];
+
+// Build progress bar
+function buildProgress() {
+  const el = document.getElementById('progress');
+  el.innerHTML = '';
+  for (let i = 0; i < 5; i++) {
+    const seg = document.createElement('div');
+    seg.className = 'prog-seg';
+    seg.id = `prog-${i}`;
+    el.appendChild(seg);
+  }
+}
+
+function updateProgress(phase) {
+  for (let i = 0; i < 5; i++) {
+    const seg = document.getElementById(`prog-${i}`);
+    seg.className = 'prog-seg' + (i <= phase ? ` done-${i}` : '');
+  }
+}
+
+function updateInput() {
+  const el = document.getElementById('curText');
+  let text = inputBase;
+  for (let i = 0; i < currentIter; i++) {
+    text += generatedTokens[i];
+  }
+  el.innerHTML = text.replace(inputBase, inputBase) + '<span class="cursor-blink"></span>';
+  
+  // Color the generated part
+  if (currentIter > 0) {
+    let gen = '';
+    for (let i = 0; i < currentIter; i++) gen += generatedTokens[i];
+    el.innerHTML = inputBase + '<span class="generated">' + gen + '</span><span class="cursor-blink"></span>';
+  }
+  
+  document.getElementById('iterNum').textContent = currentIter;
+}
+
+function highlightArch(phase) {
+  // Map phases: 0=tokenize(ab1), 1=embed(ab2), 2=transformer(ab3), 3=output(ab4), 4=select(ab5)
+  // ab0 = user input (always done after start)
+  const mapping = [1, 2, 3, 4, 5]; // phase -> ab index
+  for (let i = 0; i <= 5; i++) {
+    const el = document.getElementById('ab' + i);
+    if (!el) continue;
+    if (i === 0) { el.classList.toggle('lit', phase >= 0); }
+    else if (i === mapping[phase]) { el.classList.add('lit'); }
+    else if (i < mapping[phase]) { el.classList.remove('lit'); }
+    else { el.classList.remove('lit'); }
+  }
+}
+
+function setStageHeader(phase) {
+  highlightArch(phase);
+  const el = document.getElementById('stageHeader');
+  const top = document.getElementById('stageTop');
+  top.style.background = `linear-gradient(90deg, ${phaseColors[phase]}, transparent)`;
+  el.innerHTML = `
+    <span class="stage-icon">${phaseIcons[phase]}</span>
+    <div>
+      <div class="stage-title" style="color:${phaseColors[phase]}">${phaseNames[phase]}</div>
+      <div class="stage-sub">${phaseSubs[phase]}</div>
+    </div>
+    <span class="stage-step">STEP ${String(phase+1).padStart(2,'0')} / 05 · TOKEN ${currentIter+1}</span>
+  `;
+}
+
+// ====== PHASE RENDERERS ======
+
+async function renderTokenize() {
+  setStageHeader(0);
+  const body = document.getElementById('stageBody');
+  const tokens = fullTokensList[currentIter];
+  const ids = tokenIds[currentIter];
+
+  body.innerHTML = `
+    <div style="margin-bottom:0.5rem;color:var(--muted);font-size:0.8rem;">문장 → 토큰 분해</div>
+    <div id="tokenRow" style="margin-bottom:0.75rem;min-height:36px;"></div>
+    <div class="arr" id="arr1">↓ 사전에서 ID 매핑</div>
+    <div class="id-row" id="idRow" style="min-height:36px;"></div>
+    <div class="explain" id="exp1" style="opacity:0;transition:opacity 0.5s">
+      <span class="hl">${tokens.length}개 토큰</span>으로 분해됨. 각 토큰은 사전에서 고유 번호(ID)를 부여받음.
+      <span class="hlc" style="color:var(--blue)">이 시점에서 AI가 보는 건 숫자 ${tokens.length}개</span>일 뿐.
+    </div>
+  `;
+
+  const tokenRow = document.getElementById('tokenRow');
+  const idRow = document.getElementById('idRow');
+
+  // Show tokens one by one
+  for (let i = 0; i < tokens.length; i++) {
+    const tk = document.createElement('span');
+    tk.className = 'tk tk-blue';
+    tk.textContent = tokens[i];
+    tokenRow.appendChild(tk);
+    await delay(150);
+    tk.classList.add('show');
+  }
+
+  await delay(400);
+  document.getElementById('arr1').classList.add('show');
+  await delay(300);
+
+  // Show IDs
+  for (let i = 0; i < ids.length; i++) {
+    const box = document.createElement('span');
+    box.className = 'id-box';
+    box.textContent = ids[i];
+    idRow.appendChild(box);
+    await delay(150);
+    box.classList.add('show');
+  }
+
+  await delay(300);
+  document.getElementById('exp1').style.opacity = '1';
+}
+
+async function renderEmbedding() {
+  setStageHeader(1);
+  const body = document.getElementById('stageBody');
+  const tokens = fullTokensList[currentIter];
+
+  body.innerHTML = `
+    <div style="margin-bottom:0.5rem;color:var(--muted);font-size:0.8rem;">토큰 ID → 12,288차원 벡터</div>
+    <div id="vecArea"></div>
+    <div class="explain" id="exp2" style="opacity:0;transition:opacity 0.5s;margin-top:1rem">
+      각 토큰이 <span class="hl">12,288개의 숫자</span>로 변환됨.
+      의미가 비슷한 단어는 이 공간에서 <span class="hlc" style="color:var(--purple)">가까이 배치</span>.
+      결과: <span class="hl">[${tokens.length} × 12,288]</span> 행렬
+    </div>
+  `;
+
+  const area = document.getElementById('vecArea');
+
+  for (let i = 0; i < tokens.length; i++) {
+    const row = document.createElement('div');
+    row.className = 'vec-row';
+    
+    let barsHtml = '';
+    for (let j = 0; j < 80; j++) {
+      const h = Math.random() * 18 + 2;
+      const hue = 260 + Math.random() * 30;
+      barsHtml += `<div class="vec-cell" style="height:${h}px;background:hsla(${hue},70%,60%,0.6)"></div>`;
+    }
+
+    row.innerHTML = `
+      <span class="vec-label">${tokens[i]}</span>
+      <span style="color:var(--dimmed);font-size:0.7rem;margin:0 0.3rem">→</span>
+      <div class="vec-bar">${barsHtml}</div>
+      <span style="font-family:var(--mono);font-size:0.6rem;color:var(--dimmed);white-space:nowrap;margin-left:0.3rem">12,288d</span>
+    `;
+    area.appendChild(row);
+    await delay(200);
+    row.classList.add('show');
+  }
+
+  await delay(300);
+  document.getElementById('exp2').style.opacity = '1';
+}
+
+async function renderTransformer() {
+  setStageHeader(2);
+  const body = document.getElementById('stageBody');
+
+  body.innerHTML = `
+    <div style="display:flex;gap:1rem;align-items:flex-start;">
+      <div style="flex:1">
+        <div style="margin-bottom:0.5rem;color:var(--muted);font-size:0.8rem;">96개 층 통과 (Self-Attention)</div>
+        <div class="layer-stack" id="layerStack"></div>
+        <div class="layer-info">
+          <span id="layerLabel">Layer 0 / 96</span>
+          <span id="layerContext" style="color:var(--green)"></span>
+        </div>
+      </div>
+      <div style="width:200px;padding-top:1.5rem;" id="attnBox">
+        <div style="font-family:var(--mono);font-size:0.65rem;color:var(--dimmed);margin-bottom:0.5rem">ATTENTION 활성</div>
+        <div id="attnVis"></div>
+      </div>
+    </div>
+    <div class="explain" id="exp3" style="opacity:0;transition:opacity 0.5s;margin-top:0.75rem">
+      <span class="hl">96개 층</span>을 통과하며 벡터의 의미가 풍부해짐.
+      차원은 <span class="hlc" style="color:var(--green)">12,288 유지</span> — 내용만 층마다 농축.
+      마지막 토큰에 <span class="hl">"다음에 뭐가 와야 하는지"</span> 정보가 집중됨.
+    </div>
+  `;
+
+  const stack = document.getElementById('layerStack');
+  const layerCount = 24; // visual representation of 96 (each bar = 4 layers)
+  for (let i = 0; i < layerCount; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'layer-bar';
+    bar.innerHTML = `<div class="layer-fill" id="lf-${i}"></div>`;
+    stack.appendChild(bar);
+  }
+
+  const contexts = ["", "단어 관계 파악 중...", "문법 구조 분석 중...", "\"서울\"과 \"인구\" 연결...", "\"숫자로 답해야 함\" 파악...", "답변 패턴 형성 중...", "문맥 농축 완료"];
+  const attnPairs = [
+    {a:"서울",b:"인구",v:"0.82"},
+    {a:"인구",b:"수는",v:"0.91"},
+    {a:"?",b:"서울",v:"0.73"},
+  ];
+
+  // Animate layers
+  for (let i = 0; i < layerCount; i++) {
+    document.getElementById(`lf-${i}`).style.width = '100%';
+    const realLayer = Math.round((i+1) / layerCount * 96);
+    document.getElementById('layerLabel').textContent = `Layer ${realLayer} / 96`;
+    
+    const cIdx = Math.min(Math.floor((i+1)/layerCount * contexts.length), contexts.length-1);
+    document.getElementById('layerContext').textContent = contexts[cIdx];
+
+    // Show attention vis halfway
+    if (i === Math.floor(layerCount/2)) {
+      const vis = document.getElementById('attnVis');
+      vis.innerHTML = attnPairs.map(p => 
+        `<div style="font-family:var(--mono);font-size:0.7rem;margin-bottom:0.3rem;">
+          <span style="color:var(--green)">${p.a}</span>
+          <span style="color:var(--dimmed)">↔</span>
+          <span style="color:var(--green)">${p.b}</span>
+          <span style="color:var(--muted);margin-left:0.3rem">${p.v}</span>
+        </div>`
+      ).join('');
+    }
+
+    await delay(60);
+  }
+
+  await delay(300);
+  document.getElementById('exp3').style.opacity = '1';
+}
+
+async function renderOutput() {
+  setStageHeader(3);
+  const body = document.getElementById('stageBody');
+  const probs = probData[currentIter];
+
+  body.innerHTML = `
+    <div style="margin-bottom:0.75rem;color:var(--muted);font-size:0.8rem;">Logit → Softmax → 확률 (10만 토큰 중 상위 5개)</div>
+    <div id="logitArea"></div>
+    <div class="explain" id="exp4" style="opacity:0;transition:opacity 0.5s;margin-top:0.75rem">
+      <span class="hl">12,288차원</span> → 변환 행렬 → <span class="hl">100,000차원</span> 점수(logit).
+      Softmax로 확률 변환: <span class="hlc" style="color:var(--orange)">전체 합 = 1.0</span>.
+      <span class="hl">"${probs.top[0].t}"</span>이 ${probs.top[0].p}%로 가장 높음.
+    </div>
+  `;
+
+  const area = document.getElementById('logitArea');
+  const maxP = probs.top[0].p;
+
+  for (let i = 0; i < probs.top.length; i++) {
+    const d = probs.top[i];
+    const barW = Math.max(d.p / maxP * 70, 0.5);
+    const color = i === 0 ? 'var(--orange)' : i < 3 ? 'var(--purple)' : 'var(--dimmed)';
+    
+    const row = document.createElement('div');
+    row.className = 'logit-row';
+    row.innerHTML = `
+      <span class="logit-label">"${d.t}"</span>
+      <div class="logit-track">
+        <div class="logit-fill" id="lbar-${i}" style="background:${color};color:${i===0?'var(--bg)':'transparent'}">${d.p}%</div>
+      </div>
+      <span class="logit-val">${d.p >= 1 ? d.p+'%' : d.p+'%'}</span>
+    `;
+    area.appendChild(row);
+    
+    await delay(150);
+    row.classList.add('show');
+    await delay(50);
+    document.getElementById(`lbar-${i}`).style.width = barW + '%';
+  }
+
+  await delay(400);
+  document.getElementById('exp4').style.opacity = '1';
+}
+
+async function renderDice() {
+  setStageHeader(4);
+  const body = document.getElementById('stageBody');
+  const probs = probData[currentIter];
+
+  body.innerHTML = `
+    <div class="dice-area">
+      <div style="color:var(--muted);font-size:0.8rem;margin-bottom:0.5rem">10만 면 주사위 굴리기...</div>
+      <div class="dice" id="dice">🎲</div>
+      <div class="dice-result" id="diceResult" style="color:var(--pink)"></div>
+    </div>
+    <div class="explain" id="exp5" style="opacity:0;transition:opacity 0.5s">
+      확률분포에서 <span class="hlc" style="color:var(--pink)">샘플링</span>하여 다음 토큰 선택.
+      이 토큰이 입력에 추가되고, <span class="hl">전체 파이프라인을 처음부터 다시 실행</span>.
+    </div>
+  `;
+
+  // Roll animation
+  const dice = document.getElementById('dice');
+  const faces = ['🎲','🎯','💫','✨','🎲','🎯'];
+  dice.classList.add('rolling');
+  
+  for (let i = 0; i < 15; i++) {
+    dice.textContent = faces[i % faces.length];
+    await delay(80);
+  }
+  dice.classList.remove('rolling');
+  dice.textContent = '🎲';
+
+  await delay(200);
+
+  const result = document.getElementById('diceResult');
+  if (probs.pick === '[종료]') {
+    result.innerHTML = `생성 완료! ✅<br><span style="font-size:1rem;color:var(--muted)">[종료 토큰] 선택 — 문장 생성 끝</span>`;
+  } else {
+    result.innerHTML = `"${probs.pick}" 선택!<br><span style="font-size:0.85rem;color:var(--muted)">→ 입력에 추가하고 다시 ①부터</span>`;
+  }
+  result.classList.add('show');
+
+  await delay(300);
+  document.getElementById('exp5').style.opacity = '1';
+}
+
+// ====== CONTROL ======
+
+async function nextPhase() {
+  if (isAnimating) return;
+  isAnimating = true;
+  document.getElementById('btnNext').disabled = true;
+
+  currentPhase++;
+
+  if (currentPhase > 4) {
+    // Move to next iteration
+    currentIter++;
+    currentPhase = 0;
+    updateInput();
+    
+    if (currentIter >= 6) {
+      // All done
+      const body = document.getElementById('stageBody');
+      const header = document.getElementById('stageHeader');
+      document.getElementById('stageTop').style.background = 'linear-gradient(90deg, var(--cyan), var(--green))';
+      header.innerHTML = `
+        <span class="stage-icon">✅</span>
+        <div>
+          <div class="stage-title" style="color:var(--cyan)">생성 완료!</div>
+          <div class="stage-sub">총 6개 토큰 생성, 각 토큰마다 5단계 파이프라인 × 6회 = 30단계 실행</div>
+        </div>
+      `;
+      body.innerHTML = `
+        <div style="text-align:center;padding:2rem 0;">
+          <div style="font-size:1.5rem;font-weight:900;color:var(--cyan);margin-bottom:1rem">
+            "서울의 인구수는? <span style="color:var(--white)">약 970만 명입니다</span>"
+          </div>
+          <div style="color:var(--muted);font-size:0.85rem;line-height:1.8">
+            매 토큰마다 전체 파이프라인(토큰화 → 임베딩 → 96층 트랜스포머 → 출력 변환 → 샘플링)을<br>
+            <span style="color:var(--orange);font-weight:700">처음부터 다시 실행</span>합니다.<br><br>
+            토큰이 늘수록 → 연산량 ↑ → 비용 ↑ → 시간 ↑
+          </div>
+        </div>
+      `;
+      updateProgress(4);
+      isAnimating = false;
+      document.getElementById('btnNext').textContent = '✅ 완료';
+      document.getElementById('btnNext').disabled = true;
+      return;
+    }
+  }
+
+  updateProgress(currentPhase);
+
+  switch(currentPhase) {
+    case 0: await renderTokenize(); break;
+    case 1: await renderEmbedding(); break;
+    case 2: await renderTransformer(); break;
+    case 3: await renderOutput(); break;
+    case 4: await renderDice(); break;
+  }
+
+  isAnimating = false;
+  document.getElementById('btnNext').disabled = false;
+  
+  const isLast = currentIter === 5 && currentPhase === 4;
+  document.getElementById('btnNext').textContent = 
+    currentPhase === 4 
+      ? (isLast ? '▶ 결과 보기' : '▶ 다음 토큰 생성 →')
+      : '▶ 다음 단계';
+}
+
+function resetAll() {
+  currentIter = 0;
+  currentPhase = -1;
+  isAnimating = false;
+  updateInput();
+  buildProgress();
+  document.getElementById('stageTop').style.background = 'none';
+  document.getElementById('stageHeader').innerHTML = `
+    <span class="stage-icon">💡</span>
+    <div>
+      <div class="stage-title" style="color:var(--cyan)">시작하기</div>
+      <div class="stage-sub">"▶ 다음 단계" 버튼을 눌러 LLM의 동작을 한 단계씩 따라가보세요</div>
+    </div>
+  `;
+  document.getElementById('stageBody').innerHTML = `
+    <div style="text-align:center;padding:2.5rem 0;color:var(--dimmed)">
+      <div style="font-size:2.5rem;margin-bottom:0.75rem">🔤 → 📐 → 🧠 → 🎯 → 🎲</div>
+      <div style="font-size:0.85rem">토큰화 → 임베딩 → 트랜스포머 → 출력 변환 → 확률·선택</div>
+      <div style="font-size:0.75rem;margin-top:0.5rem;color:var(--muted)">이 과정을 토큰 하나마다 반복합니다</div>
+    </div>
+  `;
+  document.getElementById('btnNext').textContent = '▶ 다음 단계';
+  for (let i = 0; i <= 5; i++) { const el = document.getElementById('ab' + i); if (el) el.classList.remove('lit'); }
+  document.getElementById('btnNext').disabled = false;
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// Init
+buildProgress();
+resetAll();
+</script>
+</body>
+</html>

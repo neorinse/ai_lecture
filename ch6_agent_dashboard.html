@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH6. 에이전트 아키텍처</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ========================================= */
+  /* 🌟 사장님 맞춤형 UI/글꼴 업그레이드 코드 🌟 */
+  /* ========================================= */
+  
+  /* 1. 전체 글자 크기 및 화면 1.3배 확대 (모든 비율이 맞춰서 커집니다) */
+  html { font-size: 21px !important; }
+
+  /* 2. 각 영역(박스)을 더 입체적이고 고급스럽게 표현 (입체 그림자 & 테두리) */
+  .section, .panel, .illust, .card, .sim-panel {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 16px !important;
+  }
+
+  /* 3. 제목에 은은한 빛 효과를 주어 가독성 및 세련미 향상 */
+  .hdr h1 {
+    text-shadow: 0 4px 20px rgba(255, 255, 255, 0.15) !important;
+  }
+
+  /* 4. 버튼이나 탭에 마우스를 올렸을 때 살짝 떠오르는 부드러운 애니메이션 */
+  button, .tab {
+    transition: all 0.2s ease-in-out !important;
+  }
+  button:not(:disabled):hover, .tab:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.2);
+  }
+  /* ========================================= */
+:root{--bg:#0B1120;--bg2:#141E33;--bg3:#1C2A47;--blue:#3B82F6;--cyan:#06B6D4;--green:#10B981;--orange:#F59E0B;--pink:#EC4899;--purple:#8B5CF6;--red:#EF4444;--white:#F1F5F9;--muted:#94A3B8;--dimmed:#64748B;--font:'Noto Sans KR',sans-serif;--mono:'JetBrains Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--white);font-family:var(--font)}
+.wrap{max-width:1200px;margin:0 auto;padding:1rem 1.25rem}
+.hdr{text-align:center;margin-bottom:1rem}
+.hdr-tag{font-family:var(--mono);font-size:.65rem;color:var(--pink);letter-spacing:4px;text-transform:uppercase;margin-bottom:.3rem}
+.hdr h1{font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,var(--white),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.2rem}
+.hdr p{color:var(--muted);font-size:.85rem}
+
+/* Step */
+.step-bar{display:flex;gap:3px;margin-bottom:.25rem}
+.sd{flex:1;height:6px;border-radius:3px;background:var(--bg3);transition:all .3s}
+.sd.done{background:var(--green)}.sd.cur{background:var(--orange);box-shadow:0 0 6px var(--orange)}
+.step-label{font-family:var(--mono);font-size:.75rem;color:var(--dimmed);margin-bottom:.5rem;text-align:center;min-height:1.2rem}
+.step-label .cur{color:var(--orange);font-weight:700}
+
+/* ===== 3 COL ===== */
+.layout{display:grid;grid-template-columns:280px 40px 1fr 40px 280px;gap:0;margin-bottom:.5rem}
+.arrow-col{display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:var(--dimmed)}
+
+.panel{background:var(--bg2);border:2px solid rgba(255,255,255,.05);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;height:520px;transition:border-color .5s}
+.panel.glow-purple{border-color:rgba(139,92,246,.35)}
+.panel.glow-green{border-color:rgba(16,185,129,.35)}
+.panel.glow-pink{border-color:rgba(236,72,153,.35)}
+
+.panel-head{padding:.55rem .7rem;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;gap:.4rem;flex-shrink:0}
+.panel-head .ico{font-size:1.1rem}
+.panel-head .title{font-size:.8rem;font-weight:900;letter-spacing:.3px}
+
+.panel-body{flex:1;overflow-y:auto;padding:0}
+
+/* Left panel header */
+.ph-input{background:rgba(139,92,246,.06)}.ph-input .title{color:var(--purple)}
+/* Center panel header */
+.ph-proc{background:rgba(16,185,129,.06)}.ph-proc .title{color:var(--green)}
+/* Right panel header */
+.ph-out{background:rgba(236,72,153,.06)}.ph-out .title{color:var(--pink)}
+
+/* ===== LEFT: Input blocks ===== */
+.ib{padding:.55rem .65rem;border-bottom:1px solid rgba(255,255,255,.03);transition:all .4s;opacity:.3}
+.ib.lit{opacity:1;background:rgba(255,255,255,.02)}
+.ib .tag{font-family:var(--mono);font-size:.6rem;font-weight:700;padding:.1rem .35rem;border-radius:3px;display:inline-block;margin-bottom:.2rem}
+.ib .badge{font-family:var(--mono);font-size:.48rem;color:var(--dimmed);float:right;padding:.06rem .2rem;border:1px solid rgba(255,255,255,.05);border-radius:3px}
+.ib .txt{font-size:.75rem;line-height:1.5;color:var(--muted)}
+.ib.lit .txt{color:var(--white)}
+.ib-sys .tag{background:rgba(139,92,246,.15);color:var(--purple)}
+.ib-usr .tag{background:rgba(59,130,246,.15);color:var(--blue)}
+.ib-ctx .tag{background:rgba(6,182,212,.15);color:var(--cyan)}
+.ctx-line{font-family:var(--mono);font-size:.6rem;color:var(--cyan);padding:.15rem 0;border-bottom:1px solid rgba(255,255,255,.015);opacity:0;transform:translateX(-5px);transition:all .3s}
+.ctx-line.show{opacity:1;transform:translateX(0)}
+
+/* ===== CENTER: Proc blocks ===== */
+.pb{padding:.5rem .65rem;border-bottom:1px solid rgba(255,255,255,.03);transition:all .4s}
+.pb.lit{background:rgba(255,255,255,.02)}
+.pb .p-ico{font-size:1.2rem;vertical-align:middle;margin-right:.3rem}
+.pb .p-name{font-size:.8rem;font-weight:900;vertical-align:middle}
+.pb .p-desc{font-size:.6rem;color:var(--dimmed);margin-top:.1rem}
+.pb .p-status{font-family:var(--mono);font-size:.6rem;margin-top:.2rem;padding:.1rem .35rem;border-radius:4px;display:inline-block;transition:all .3s}
+.ti{font-family:var(--mono);font-size:.6rem;padding:.18rem .3rem;border-radius:4px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.03);color:var(--dimmed);margin-top:2px;display:flex;align-items:center;gap:.25rem;transition:all .3s}
+.ti.active{background:rgba(245,158,11,.1);border-color:var(--orange);color:var(--orange)}
+.ti.used{background:rgba(16,185,129,.05);border-color:rgba(16,185,129,.15);color:var(--green)}
+.mem-list{margin-top:.25rem;display:flex;flex-direction:column;gap:2px;max-height:100px;overflow-y:auto}
+.me{font-family:var(--mono);font-size:.52rem;padding:.12rem .25rem;border-radius:3px;color:var(--dimmed);border-left:2px solid transparent;transition:all .3s;background:rgba(6,182,212,.02)}
+.me.fresh{border-left-color:var(--cyan);color:var(--cyan);background:rgba(6,182,212,.07)}
+
+/* ===== RIGHT: Output messages ===== */
+.om{padding:.45rem .6rem;margin:.3rem .4rem;border-radius:8px;font-size:.75rem;line-height:1.55;opacity:0;transform:translateY(5px);transition:all .35s}
+.om.show{opacity:1;transform:translateY(0)}
+.om .om-tag{font-family:var(--mono);font-size:.5rem;font-weight:700;display:block;margin-bottom:.15rem}
+.om-think{background:rgba(139,92,246,.04);border:1px dashed rgba(139,92,246,.12);color:var(--purple);font-style:italic;font-size:.7rem}
+.om-tool{background:rgba(245,158,11,.04);border:1px solid rgba(245,158,11,.08);color:var(--orange);font-family:var(--mono);font-size:.65rem}
+.om-ai{background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.15);color:var(--white);font-size:.8rem}
+
+/* Controls */
+.ctrl{display:flex;justify-content:center;gap:.5rem;margin:.5rem 0}
+.btn{background:var(--bg2);border:1px solid rgba(255,255,255,.1);color:var(--white);padding:.4rem 1rem;border-radius:7px;font-family:var(--font);font-size:.7rem;font-weight:600;cursor:pointer;transition:all .3s}
+.btn:hover{border-color:rgba(255,255,255,.25);transform:translateY(-1px)}
+.btn:disabled{opacity:.3;cursor:not-allowed;transform:none}
+.btn-go{background:linear-gradient(135deg,var(--pink),var(--purple));border:none;color:var(--white);font-size:.8rem;padding:.5rem 1.4rem}
+
+.explain{font-size:.7rem;color:var(--dimmed);line-height:1.6;padding:.5rem;background:rgba(0,0,0,.2);border-radius:7px;border-left:3px solid var(--dimmed);margin-top:.4rem}
+.explain .hl{color:var(--white);font-weight:700}
+.footer{text-align:center;padding:.75rem 0;color:var(--dimmed);font-size:.55rem;border-top:1px solid rgba(255,255,255,.04);margin-top:.4rem}
+@media(max-width:900px){.layout{grid-template-columns:1fr;height:auto}.arrow-col{padding:.3rem 0;transform:rotate(90deg)}.panel{height:auto;min-height:200px;max-height:350px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr"><div class="hdr-tag">Chapter 06</div><h1>에이전트 아키텍처 — 실시간 동작</h1><p>입력 → 처리 → 출력 흐름을 한 화면에서 관찰</p></div>
+
+  <div class="step-bar" id="stepBar"></div>
+  <div class="step-label">현재: <span class="cur" id="curStep">▶ 시작 버튼을 눌러주세요</span></div>
+
+  <div class="layout">
+    <!-- LEFT: LLM Input -->
+    <div class="panel" id="pInput">
+      <div class="panel-head ph-input"><span class="ico">📥</span><span class="title">LLM 입력</span></div>
+      <div class="panel-body" id="inputBody">
+        <div class="ib ib-sys" id="ibSys">
+          <span class="tag">SYSTEM</span><span class="badge">사용자에게 숨겨짐</span>
+          <div class="txt">너는 SK텔레콤 AI 상담사 "에이닷"이다. 친절하고 정확하게 답변해. 요금 관련 질문에는 반드시 요금제를 확인한 후 답변해.</div>
+        </div>
+        <div class="ib ib-usr" id="ibUsr">
+          <span class="tag">USER</span>
+          <div class="txt">요금이 왜 이렇게 많이 나왔어요?</div>
+        </div>
+        <div class="ib ib-ctx" id="ibCtx" style="display:none">
+          <span class="tag">CONTEXT</span><span class="badge">도구+메모리</span>
+          <div id="ctxBody"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow-col">→</div>
+
+    <!-- CENTER: Processing -->
+    <div class="panel" id="pProc">
+      <div class="panel-head ph-proc"><span class="ico">⚙️</span><span class="title">처리 (LLM + 도구 + 메모리)</span></div>
+      <div class="panel-body">
+        <div class="pb" id="pbLlm">
+          <span class="p-ico">🧠</span><span class="p-name" style="color:var(--green)">LLM</span>
+          <div class="p-desc">오케스트레이션 — 판단 · 계획 · 실행</div>
+          <div class="p-status" id="psLlm" style="background:rgba(16,185,129,.08);color:var(--green)">대기</div>
+        </div>
+        <div class="pb" id="pbTool">
+          <span class="p-ico">🔧</span><span class="p-name" style="color:var(--orange)">도구 (Function Calling)</span>
+          <div class="p-desc">외부 시스템 호출</div>
+          <div class="ti" id="ti-cdb">🗄️ 고객DB</div>
+          <div class="ti" id="ti-bill">🧾 청구내역</div>
+          <div class="ti" id="ti-plan">📱 요금제DB</div>
+          <div class="ti" id="ti-sim">📊 시뮬레이션</div>
+          <div class="ti" id="ti-gen">💬 답변생성</div>
+        </div>
+        <div class="pb" id="pbMem">
+          <span class="p-ico">💾</span><span class="p-name" style="color:var(--cyan)">메모리</span>
+          <div class="p-desc">상태 저장 → 다음 단계에 활용</div>
+          <div class="mem-list" id="memList"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow-col">→</div>
+
+    <!-- RIGHT: Output -->
+    <div class="panel" id="pOut">
+      <div class="panel-head ph-out"><span class="ico">💬</span><span class="title">출력</span></div>
+      <div class="panel-body" id="outBody"></div>
+    </div>
+  </div>
+
+  <div class="ctrl">
+    <button class="btn btn-go" id="goBtn" onclick="runAgent()">▶ 에이전트 시뮬레이션</button>
+    <button class="btn" onclick="resetAll()">↺ 리셋</button>
+  </div>
+
+  <div class="explain" style="border-left-color:var(--pink)">
+    <span class="hl">왼쪽</span>: SYSTEM(역할 정의, 숨겨짐) + USER(고객 메시지) + CONTEXT(도구 결과 누적).
+    <span class="hl">가운데</span>: LLM이 판단, 도구 호출, 메모리 저장.
+    <span class="hl">오른쪽</span>: 사고 과정 · 도구 결과 · 최종 답변 순서대로 출력.
+    Step 5: 사용자가 요청 안 했는데 <span class="hl">스스로 대안 요금제 검색</span> — 에이전트의 핵심.
+  </div>
+  <div class="footer">CEO AI Intelligence · Chapter 06 · 2026</div>
+</div>
+
+<script>
+const STEPS=7;
+function delay(ms){return new Promise(r=>setTimeout(r,ms))}
+function buildSteps(){const e=document.getElementById('stepBar');e.innerHTML='';for(let i=0;i<STEPS;i++)e.innerHTML+=`<div class="sd" id="sd-${i}"></div>`}
+function setStep(i,t){for(let j=0;j<STEPS;j++)document.getElementById(`sd-${j}`).className=j<i?'sd done':j===i?'sd cur':'sd';document.getElementById('curStep').textContent=t}
+
+// Glow panels
+function glowOff(){document.getElementById('pInput').className='panel';document.getElementById('pProc').className='panel';document.getElementById('pOut').className='panel';
+['ibSys','ibUsr','ibCtx'].forEach(id=>document.getElementById(id).classList.remove('lit'));
+['pbLlm','pbTool','pbMem'].forEach(id=>document.getElementById(id).classList.remove('lit'))}
+function glowInput(blocks){document.getElementById('pInput').className='panel glow-purple';blocks.forEach(id=>document.getElementById(id).classList.add('lit'))}
+function glowProc(blocks){document.getElementById('pProc').className='panel glow-green';blocks.forEach(id=>document.getElementById(id).classList.add('lit'))}
+function glowOut(){document.getElementById('pOut').className='panel glow-pink'}
+
+function setSt(id,t,bg,c){const e=document.getElementById(id);e.textContent=t;e.style.background=bg;e.style.color=c}
+function setTool(id,s){document.getElementById(id).className='ti'+(s?' '+s:'')}
+function addMem(t){const e=document.getElementById('memList');const d=document.createElement('div');d.className='me fresh';d.textContent=t;e.appendChild(d);e.scrollTop=e.scrollHeight;setTimeout(()=>{e.querySelectorAll('.fresh').forEach((m,i,a)=>{if(i<a.length-1)m.classList.remove('fresh')})},300)}
+function addCtx(t){document.getElementById('ibCtx').style.display='block';const d=document.createElement('div');d.className='ctx-line';d.textContent=t;document.getElementById('ctxBody').appendChild(d);setTimeout(()=>d.classList.add('show'),30);document.getElementById('inputBody').scrollTop=9999}
+function addOut(cls,tag,html){const e=document.getElementById('outBody');const d=document.createElement('div');d.className=`om ${cls}`;d.innerHTML=`<span class="om-tag">${tag}</span>${html}`;e.appendChild(d);requestAnimationFrame(()=>{d.classList.add('show');e.scrollTop=9999})}
+
+const sim=[
+  {label:"Step 1 · 의도 파악",
+   inGlow:['ibSys','ibUsr'], procGlow:['pbLlm'],
+   st:{id:'psLlm',t:'분석 중',bg:'rgba(245,158,11,.12)',c:'var(--orange)'},
+   tool:null,
+   mem:'의도: 요금 증가 원인 문의',ctx:'[1] 의도: 요금 증가 원인 문의',
+   endSt:{id:'psLlm',t:'판단 완료',bg:'rgba(16,185,129,.1)',c:'var(--green)'},
+   outs:[{cls:'om-think',tag:'🧠 LLM 판단',html:'시스템 프롬프트 확인 → 요금 질문이므로 반드시 요금제를 먼저 확인해야 합니다. 고객 정보부터 조회합니다.',d:500}]},
+  {label:"Step 2 · 고객DB 조회",
+   inGlow:['ibCtx'], procGlow:['pbLlm','pbTool'],
+   st:{id:'psLlm',t:'도구 호출',bg:'rgba(245,158,11,.12)',c:'var(--orange)'},
+   tool:{id:'ti-cdb'},
+   mem:'고객: 김OO / 5G 시그니처',ctx:'[2] 고객: 김OO / 5G 시그니처',
+   endSt:null,
+   outs:[{cls:'om-tool',tag:'🔧 고객DB 조회',html:'customer_id=38291<br>→ 김OO / 5G 시그니처 / 가입 2년차',d:500}]},
+  {label:"Step 3 · 청구내역 비교",
+   inGlow:['ibCtx'], procGlow:['pbLlm','pbTool'],
+   st:null,
+   tool:{id:'ti-bill'},
+   mem:'청구: 89,000 vs 59,000 (+30,000)',ctx:'[3] 청구: 89,000 vs 59,000 (+30,000)',
+   endSt:null,
+   outs:[{cls:'om-tool',tag:'🧾 청구내역 비교',html:'이번 달: 89,000원 / 지난 달: 59,000원<br>→ 차액: <b>+30,000원</b>',d:500}]},
+  {label:"Step 4 · 원인 분석 (자체 추론)",
+   inGlow:['ibCtx'], procGlow:['pbLlm','pbMem'],
+   st:{id:'psLlm',t:'추론 중',bg:'rgba(245,158,11,.12)',c:'var(--orange)'},
+   tool:null,
+   mem:'원인: 데이터 5GB 초과 (15/10GB)',ctx:'[4] 원인: 데이터 5GB 초과',
+   endSt:{id:'psLlm',t:'원인 파악',bg:'rgba(16,185,129,.1)',c:'var(--green)'},
+   outs:[{cls:'om-think',tag:'🧠 LLM 추론',html:'데이터 사용량 15GB — 한도 10GB 초과 5GB. 이것이 추가 요금 원인입니다.',d:600}]},
+  {label:"Step 5 · 자율 판단: 대안 검색 🔥",
+   inGlow:['ibCtx'], procGlow:['pbLlm','pbTool'],
+   st:{id:'psLlm',t:'🔥 자율 판단!',bg:'rgba(236,72,153,.15)',c:'var(--pink)'},
+   tool:{id:'ti-plan'},
+   mem:'대안: 프리미어 69K/무제한',ctx:'[5] 대안: 프리미어 69K/무제한',
+   endSt:null,
+   outs:[
+     {cls:'om-think',tag:'🧠 자율 판단 (사용자 미요청!)',html:'고객 패턴에 더 적합한 요금제가 있을까? 직접 찾아보겠습니다.',d:400},
+     {cls:'om-tool',tag:'📱 요금제DB 검색',html:'① 5G 프리미어 에센셜 (69,000원/무제한)<br>② 5G 라이트+ (55,000원/15GB)',d:400}]},
+  {label:"Step 6 · 비용 시뮬레이션",
+   inGlow:['ibCtx'], procGlow:['pbLlm','pbTool'],
+   st:null,
+   tool:{id:'ti-sim'},
+   mem:'시뮬: 프리미어 -20,000/월',ctx:'[6] 시뮬: 프리미어 69K (절약 20K/월)',
+   endSt:null,
+   outs:[{cls:'om-tool',tag:'📊 비용 시뮬레이션',html:'프리미어: 월 69,000원 (현재 대비 <b>-20,000원</b>)<br>라이트+: 월 55,000원 (-34,000원, 초과 리스크)',d:500}]},
+  {label:"Step 7 · 최종 답변 생성",
+   inGlow:['ibSys','ibUsr','ibCtx'], procGlow:['pbLlm'],
+   st:{id:'psLlm',t:'답변 생성',bg:'rgba(16,185,129,.15)',c:'var(--green)'},
+   tool:{id:'ti-gen'},
+   mem:'최종 답변 전달',ctx:'[7] 최종 답변 생성 완료',
+   endSt:{id:'psLlm',t:'✅ 완료',bg:'rgba(16,185,129,.15)',c:'var(--green)'},
+   outs:[{cls:'om-ai',tag:'🤖 최종 답변',html:'안녕하세요, 김OO 고객님! 요금 확인해드렸습니다 😊<br><br><b>📋 원인:</b> 이번 달 데이터를 15GB 사용하셔서, 10GB 한도를 5GB 초과하신 게 원인입니다.<br><br><b>💡 추천:</b> "5G 프리미어 에센셜" 요금제로 변경하시면 데이터 무제한에 월 69,000원으로, <b>매달 약 2만 원 절약</b>할 수 있어요.<br><br>요금제 변경 도와드릴까요?',d:700}]},
+];
+
+let running=false;
+
+async function runAgent(){
+  if(running)return;running=true;document.getElementById('goBtn').disabled=true;
+  resetAll(true);
+
+  for(let i=0;i<sim.length;i++){
+    const s=sim[i];
+    setStep(i,s.label);
+
+    // === Phase 1: Glow INPUT ===
+    glowOff();
+    glowInput(s.inGlow);
+    await delay(400);
+
+    // === Phase 2: Glow PROCESSING ===
+    glowProc(s.procGlow);
+    if(s.st) setSt(s.st.id,s.st.t,s.st.bg,s.st.c);
+    if(s.tool){setTool(s.tool.id,'active');await delay(350);setTool(s.tool.id,'used')}
+    await delay(250);
+
+    // Memory + Context
+    addMem(s.mem);
+    addCtx(s.ctx);
+    if(s.endSt) setSt(s.endSt.id,s.endSt.t,s.endSt.bg,s.endSt.c);
+
+    // === Phase 3: Glow OUTPUT ===
+    glowOff();
+    glowOut();
+    for(const o of s.outs){
+      await delay(o.d);
+      addOut(o.cls,o.tag,o.html);
+    }
+
+    await delay(300);
+    document.getElementById(`sd-${i}`).className='sd done';
+  }
+
+  setStep(STEPS,'✅ 7단계 자율 완료!');
+  glowOff();glowOut();
+  running=false;document.getElementById('goBtn').disabled=false;
+}
+
+function resetAll(keep){
+  if(!keep)running=false;
+  buildSteps();setStep(-1,'▶ 시작 버튼을 눌러주세요');
+  glowOff();
+  document.getElementById('ibCtx').style.display='none';
+  document.getElementById('ctxBody').innerHTML='';
+  document.getElementById('outBody').innerHTML='';
+  document.getElementById('memList').innerHTML='';
+  setSt('psLlm','대기','rgba(16,185,129,.08)','var(--green)');
+  ['ti-cdb','ti-bill','ti-plan','ti-sim','ti-gen'].forEach(id=>setTool(id,''));
+  if(!keep)document.getElementById('goBtn').disabled=false;
+}
+
+resetAll();
+</script>
+</body>
+</html>

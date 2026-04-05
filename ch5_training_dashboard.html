@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH5. AI는 어떻게 만들어지나</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ========================================= */
+  /* 🌟 사장님 맞춤형 UI/글꼴 업그레이드 코드 🌟 */
+  /* ========================================= */
+  
+  /* 1. 전체 글자 크기 및 화면 1.3배 확대 (모든 비율이 맞춰서 커집니다) */
+  html { font-size: 21px !important; }
+
+  /* 2. 각 영역(박스)을 더 입체적이고 고급스럽게 표현 (입체 그림자 & 테두리) */
+  .section, .panel, .illust, .card, .sim-panel {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 16px !important;
+  }
+
+  /* 3. 제목에 은은한 빛 효과를 주어 가독성 및 세련미 향상 */
+  .hdr h1 {
+    text-shadow: 0 4px 20px rgba(255, 255, 255, 0.15) !important;
+  }
+
+  /* 4. 버튼이나 탭에 마우스를 올렸을 때 살짝 떠오르는 부드러운 애니메이션 */
+  button, .tab {
+    transition: all 0.2s ease-in-out !important;
+  }
+  button:not(:disabled):hover, .tab:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.2);
+  }
+  /* ========================================= */
+:root{--bg:#0B1120;--bg2:#141E33;--bg3:#1C2A47;--blue:#3B82F6;--cyan:#06B6D4;--green:#10B981;--orange:#F59E0B;--pink:#EC4899;--purple:#8B5CF6;--red:#EF4444;--white:#F1F5F9;--muted:#94A3B8;--dimmed:#64748B;--font:'Noto Sans KR',sans-serif;--mono:'JetBrains Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}body{background:var(--bg);color:var(--white);font-family:var(--font)}.wrap{max-width:1060px;margin:0 auto;padding:1.25rem}
+.hdr{text-align:center;margin-bottom:1rem}.hdr-tag{font-family:var(--mono);font-size:.6rem;color:var(--purple);letter-spacing:4px;text-transform:uppercase;margin-bottom:.3rem}.hdr h1{font-size:1.7rem;font-weight:900;background:linear-gradient(135deg,var(--white),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.2rem}.hdr p{color:var(--muted);font-size:.8rem}
+.tabs{display:flex;gap:3px;margin-bottom:1rem;background:var(--bg2);border-radius:10px;padding:3px}.tab{flex:1;padding:.45rem;text-align:center;border-radius:7px;font-size:.6rem;font-weight:700;cursor:pointer;transition:all .3s}.tab.active{color:var(--bg)}.tab:not(.active){color:var(--dimmed)}.tab:not(.active):hover{color:var(--muted)}
+#t0.active{background:linear-gradient(135deg,var(--blue),var(--purple))}#t1.active{background:linear-gradient(135deg,var(--blue),var(--green))}#t2.active{background:linear-gradient(135deg,var(--green),var(--orange))}#t3.active{background:linear-gradient(135deg,var(--red),var(--pink))}#t4.active{background:linear-gradient(135deg,var(--orange),var(--pink))}
+.part{display:none}.part.show{display:block}
+.section{background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:1.15rem;margin-bottom:.75rem;position:relative;overflow:hidden}
+.sim-title{font-size:.95rem;font-weight:900;margin-bottom:.1rem}.sim-sub{font-size:.65rem;color:var(--muted);margin-bottom:.6rem}
+/* Pipeline layout */
+.pipe{display:grid;grid-template-columns:1fr 35px 130px 35px 1fr;gap:0;align-items:stretch;margin-bottom:.4rem;min-height:180px}
+.pipe-arrow{display:flex;align-items:center;justify-content:center;font-size:.9rem;color:var(--dimmed)}
+.col{display:flex;flex-direction:column;gap:3px}
+.row-card{background:var(--bg3);border-radius:5px;padding:.3rem .4rem;font-size:.55rem;border-left:3px solid transparent;transition:all .3s;min-height:26px;display:flex;align-items:center;gap:.25rem;flex-wrap:wrap}
+.row-card.active{border-left-color:var(--orange);background:rgba(245,158,11,.04)}
+.row-card.ok{border-left-color:var(--green);background:rgba(16,185,129,.03)}
+.row-card.bad{border-left-color:var(--red);background:rgba(239,68,68,.03)}
+.s-mask{display:inline-block;padding:.08rem .3rem;border-radius:3px;font-family:var(--mono);font-weight:700;font-size:.55rem;min-width:25px;text-align:center;transition:all .3s}
+.s-mask.hidden{background:rgba(245,158,11,.15);color:var(--orange);border:1px dashed var(--orange)}
+.s-mask.correct{background:rgba(16,185,129,.15);color:var(--green);border:1px solid var(--green)}
+.s-mask.wrong{background:rgba(239,68,68,.15);color:var(--red);border:1px solid var(--red);text-decoration:line-through}
+/* LLM block */
+.llm{background:var(--bg3);border:2px solid rgba(139,92,246,.2);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.35rem;transition:all .4s}
+.llm.updating{border-color:var(--orange);box-shadow:0 0 12px rgba(245,158,11,.15)}
+.llm.updated{border-color:var(--green);box-shadow:0 0 10px rgba(16,185,129,.1)}
+.llm-ico{font-size:1.4rem;transition:transform .3s}.llm.updating .llm-ico{animation:sp .4s}
+@keyframes sp{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+.llm-lbl{font-family:var(--mono);font-size:.5rem;font-weight:700;color:var(--purple)}
+.llm-st{font-family:var(--mono);font-size:.38rem;padding:.06rem .2rem;border-radius:3px;margin-top:.1rem;text-align:center}
+.w-bars{display:flex;gap:1px;margin:.15rem 0;height:14px;align-items:flex-end;width:100%}.w-b{flex:1;border-radius:1px 1px 0 0;background:var(--purple);transition:all .3s}
+/* Result card */
+.res-card{background:var(--bg3);border-radius:5px;padding:.3rem .4rem;font-size:.45rem;font-family:var(--mono);display:flex;align-items:center;gap:.2rem;min-height:26px;opacity:.3;transition:all .3s;border-left:3px solid transparent}
+.res-card.show{opacity:1}.res-card.ok{border-left-color:var(--green)}.res-card.bad{border-left-color:var(--red)}
+/* Tags */
+.tag-q{font-family:var(--mono);font-size:.4rem;padding:.04rem .15rem;border-radius:2px;background:rgba(59,130,246,.12);color:var(--blue);margin-right:.15rem}
+.tag-a{font-family:var(--mono);font-size:.4rem;padding:.04rem .15rem;border-radius:2px;background:rgba(16,185,129,.12);color:var(--green);margin-right:.15rem}
+.tag-r{font-family:var(--mono);font-size:.4rem;padding:.04rem .15rem;border-radius:2px;background:rgba(245,158,11,.12);color:var(--orange);margin-right:.15rem}
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.35rem;margin-top:.35rem}
+.st{background:var(--bg3);border-radius:5px;padding:.35rem;text-align:center}.st .n{font-family:var(--mono);font-size:.85rem;font-weight:900}.st .l{font-size:.4rem;color:var(--dimmed);margin-top:.05rem}
+.train-prog{height:4px;background:var(--bg3);border-radius:2px;margin:.35rem 0;overflow:hidden}.train-prog-fill{height:100%;border-radius:2px;width:0%;transition:width .4s}
+/* Batch banner */
+.batch-banner{background:var(--bg3);border-radius:7px;padding:.4rem .6rem;margin-bottom:.5rem;display:flex;align-items:center;justify-content:space-between;font-size:.6rem}
+.batch-banner .num{font-family:var(--mono);font-size:1rem;font-weight:900}
+.batch-banner .phase{font-family:var(--mono);font-size:.48rem;padding:.1rem .3rem;border-radius:5px}
+/* GRPO */
+.grpo-group{background:var(--bg3);border-radius:5px;padding:.35rem;margin-bottom:.25rem;border-left:3px solid transparent;transition:all .3s;font-size:.5rem}
+.grpo-group.best{border-left-color:var(--green);background:rgba(16,185,129,.03)}
+.grpo-group.mid{border-left-color:var(--orange);background:rgba(245,158,11,.02)}
+.grpo-group.worst{border-left-color:var(--red);background:rgba(239,68,68,.02)}
+.score-bar{height:3px;border-radius:2px;margin-top:.15rem;background:var(--bg2);overflow:hidden}.score-fill{height:100%;border-radius:2px;transition:width .5s}
+/* RL subtabs */
+.rl-tabs{display:flex;gap:3px;margin-bottom:.6rem;background:var(--bg3);border-radius:7px;padding:2px}
+.rl-tab{flex:1;padding:.3rem;text-align:center;border-radius:5px;font-size:.55rem;font-weight:700;cursor:pointer;transition:all .3s}
+/* Controls */
+.ctrl{display:flex;justify-content:center;gap:.4rem;margin:.4rem 0}
+.btn{background:var(--bg2);border:1px solid rgba(255,255,255,.1);color:var(--white);padding:.3rem .8rem;border-radius:6px;font-family:var(--font);font-size:.6rem;font-weight:600;cursor:pointer;transition:all .3s;display:inline-flex;align-items:center;gap:.2rem}
+.btn:hover{border-color:rgba(255,255,255,.25);transform:translateY(-1px)}.btn:disabled{opacity:.3;cursor:not-allowed;transform:none}
+.btn-go{background:linear-gradient(135deg,var(--purple),var(--blue));border:none;color:var(--white)}
+.btn-sft{background:linear-gradient(135deg,var(--blue),var(--green));border:none;color:var(--white)}
+.btn-rl{background:linear-gradient(135deg,var(--green),var(--cyan));border:none;color:var(--white)}
+.btn-grpo{background:linear-gradient(135deg,var(--orange),var(--red));border:none;color:var(--white)}
+.btn-safe{background:linear-gradient(135deg,var(--red),var(--pink));border:none;color:var(--white)}
+.btn-ft{background:linear-gradient(135deg,var(--orange),var(--pink));border:none;color:var(--white)}
+.explain{font-size:.6rem;color:var(--dimmed);line-height:1.5;padding:.4rem;background:rgba(0,0,0,.2);border-radius:5px;border-left:3px solid var(--dimmed);margin-top:.35rem}.explain .hl{color:var(--white);font-weight:700}
+/* FT/RAG */
+.ft-dual{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:.5rem}
+.ft-card{background:var(--bg3);border-radius:8px;padding:.75rem;border-top:3px solid var(--dimmed)}
+.ft-card h3{font-size:.8rem;font-weight:900;margin-bottom:.25rem}
+.ft-row{display:flex;justify-content:space-between;padding:.15rem 0;border-bottom:1px solid rgba(255,255,255,.03);font-size:.5rem}.ft-row:last-child{border-bottom:none}
+.ft-key{color:var(--dimmed)}.ft-val{font-weight:600;font-family:var(--mono);text-align:right}
+.footer{text-align:center;padding:.75rem 0;color:var(--dimmed);font-size:.5rem;border-top:1px solid rgba(255,255,255,.04);margin-top:.5rem}
+@media(max-width:750px){.pipe{grid-template-columns:1fr;gap:.3rem}.pipe-arrow{transform:rotate(90deg)}.ft-dual,.stats{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr"><div class="hdr-tag">Chapter 05</div><h1>AI는 어떻게 만들어지나</h1><p>Pre-training → SFT → RLHF/GRPO → Safety → 우리 회사 맞춤</p></div>
+  <div class="tabs">
+    <div class="tab active" id="t0" onclick="sT(0)">Pre-training</div>
+    <div class="tab" id="t1" onclick="sT(1)">① SFT</div>
+    <div class="tab" id="t2" onclick="sT(2)">② 강화학습</div>
+    <div class="tab" id="t3" onclick="sT(3)">③ Safety</div>
+    <div class="tab" id="t4" onclick="sT(4)">맞춤화</div>
+  </div>
+
+  <!-- ===== TAB 0: Pre-training ===== -->
+  <div class="part show" id="p0">
+    <div class="section">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--purple))"></div>
+      <div class="sim-title" style="color:var(--blue)">Pre-training — 기초 교육</div>
+      <div class="sim-sub">여러 문장을 동시에 마스킹 → LLM이 예측 → 틀리면 가중치 업데이트 → 모델이 점점 똑똑해짐</div>
+      <div class="batch-banner"><div style="display:flex;align-items:center;gap:.4rem"><span>📦</span><span style="color:var(--dimmed)">배치</span><span class="num" id="bN" style="color:var(--blue)">-</span><span style="color:var(--dimmed)">/5</span></div><span class="phase" id="bP" style="background:rgba(255,255,255,.05);color:var(--dimmed)">대기</span></div>
+      <div class="pipe">
+        <div class="col" id="pt-left"></div>
+        <div class="pipe-arrow">→</div>
+        <div class="llm" id="pt-llm"><div class="llm-ico" id="pt-ico">🧠</div><div class="llm-lbl">LLM</div><div class="w-bars" id="pt-wb"></div><div class="llm-st" id="pt-st" style="background:rgba(139,92,246,.1);color:var(--purple)">v0</div></div>
+        <div class="pipe-arrow">→</div>
+        <div class="col" id="pt-right"></div>
+      </div>
+      <div class="stats"><div class="st"><div class="n" style="color:var(--green)" id="sC">0</div><div class="l">맞음</div></div><div class="st"><div class="n" style="color:var(--red)" id="sW">0</div><div class="l">틀림</div></div><div class="st"><div class="n" style="color:var(--orange)" id="sU">0</div><div class="l">업데이트</div></div><div class="st"><div class="n" style="color:var(--purple)" id="sV">v0</div><div class="l">모델 버전</div></div></div>
+      <div class="train-prog"><div class="train-prog-fill" id="tP" style="background:linear-gradient(90deg,var(--blue),var(--purple))"></div></div>
+      <div class="ctrl"><button class="btn btn-go" id="pt-btn" onclick="runPT()">▶ 학습 (5배치)</button><button class="btn" onclick="resetPT()">↺</button></div>
+      <div class="explain" style="border-left-color:var(--blue)">실제: 한 배치에 <span class="hl">수천 문장 × 수천 토큰</span> 동시 처리, <span class="hl">수백만 배치</span> 반복. <span class="hl">라벨 불필요</span> → 인터넷 전체가 학습 데이터. 결과: 지식은 있지만 대화는 못 함.</div>
+    </div>
+  </div>
+
+  <!-- ===== TAB 1: SFT ===== -->
+  <div class="part" id="p1">
+    <div class="section">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--green))"></div>
+      <div class="sim-title" style="color:var(--blue)">SFT — "이렇게 대화하는 거야"</div>
+      <div class="sim-sub">고품질 질문-응답 쌍으로 "대화하는 법"을 학습 (신입 OJT)</div>
+      <div class="pipe">
+        <div class="col" id="sft-left"></div>
+        <div class="pipe-arrow">→</div>
+        <div class="llm" id="sft-llm"><div class="llm-ico">🧠</div><div class="llm-lbl">LLM</div><div class="w-bars" id="sft-wb"></div><div class="llm-st" id="sft-st" style="background:rgba(59,130,246,.1);color:var(--blue)">대기</div></div>
+        <div class="pipe-arrow">→</div>
+        <div class="col" id="sft-right"></div>
+      </div>
+      <div class="ctrl"><button class="btn btn-sft" id="sft-btn" onclick="runSFT()">▶ SFT 학습</button><button class="btn" onclick="resetSFT()">↺</button></div>
+      <div class="explain" style="border-left-color:var(--blue)">Pre-training 후 LLM은 "이어쓰기"만 함. SFT로 <span class="hl">"질문→답변" 형식</span> 학습. 데이터: <span class="hl">수만~수십만 개</span> 고품질 Q&A.</div>
+    </div>
+  </div>
+
+  <!-- ===== TAB 2: RLHF / GRPO ===== -->
+  <div class="part" id="p2">
+    <div class="section">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green),var(--orange))"></div>
+      <div class="sim-title" style="color:var(--green)">강화학습 — "이게 더 좋은 답이야"</div>
+      <div class="sim-sub">같은 질문에 여러 답변 생성 → 평가 → 좋은 방향으로 업데이트</div>
+      <div class="rl-tabs"><div class="rl-tab" id="rl-t1" onclick="sRL(1)" style="background:var(--green);color:var(--bg)">RLHF · 사람 피드백</div><div class="rl-tab" id="rl-t2" onclick="sRL(2)" style="color:var(--dimmed)">GRPO · DeepSeek</div></div>
+      <div id="rl-p1">
+        <div style="font-size:.7rem;font-weight:700;color:var(--green);margin-bottom:.5rem">RLHF — 사람이 선호 순위를 매김</div>
+        <div id="rlhf-area"></div>
+        <div class="ctrl"><button class="btn btn-rl" id="rlhf-btn" onclick="runRLHF()">▶ RLHF</button><button class="btn" onclick="resetRLHF()">↺</button></div>
+        <div class="explain" style="border-left-color:var(--green)">사람의 <span class="hl">선호도</span>를 Reward Model로 학습 → "더 나은 답" 생성 유도. 비유: 선배 코칭.</div>
+      </div>
+      <div id="rl-p2" style="display:none">
+        <div style="font-size:.7rem;font-weight:700;color:var(--orange);margin-bottom:.5rem">GRPO (DeepSeek) — 스스로 비교하여 학습</div>
+        <div id="grpo-area"></div>
+        <div class="ctrl"><button class="btn btn-grpo" id="grpo-btn" onclick="runGRPO()">▶ GRPO</button><button class="btn" onclick="resetGRPO()">↺</button></div>
+        <div class="explain" style="border-left-color:var(--orange)">DeepSeek-R1 핵심. <span class="hl">사람 피드백 없이</span> 모델이 여러 답을 생성하고 비교. Critic 모델 제거 → 메모리 40~60% 절감, PPO 대비 <span class="hl">최대 18배 효율</span>. "Aha Moment": 스스로 오류를 발견하고 수정하는 능력 자연 발현.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TAB 3: Safety ===== -->
+  <div class="part" id="p3">
+    <div class="section">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--red),var(--pink))"></div>
+      <div class="sim-title" style="color:var(--red)">Safety — "이건 하면 안 돼"</div>
+      <div class="sim-sub">유해 콘텐츠 거부, 편향 감소, 안전 정보 안내 (컴플라이언스)</div>
+      <div class="pipe">
+        <div class="col" id="safe-left"></div>
+        <div class="pipe-arrow">→</div>
+        <div class="llm" id="safe-llm"><div class="llm-ico">🛡️</div><div class="llm-lbl">LLM</div><div class="w-bars" id="safe-wb"></div><div class="llm-st" id="safe-st" style="background:rgba(239,68,68,.1);color:var(--red)">대기</div></div>
+        <div class="pipe-arrow">→</div>
+        <div class="col" id="safe-right"></div>
+      </div>
+      <div class="ctrl"><button class="btn btn-safe" id="safe-btn" onclick="runSafety()">▶ Safety</button><button class="btn" onclick="resetSafety()">↺</button></div>
+      <div class="explain" style="border-left-color:var(--red)">유해 요청 <span class="hl">거부</span>, 민감 주제 <span class="hl">균형</span>, 위험 상황 <span class="hl">안전 안내</span>. 이 단계 후 "ChatGPT처럼 쓸 수 있는 상태".</div>
+    </div>
+  </div>
+
+  <!-- ===== TAB 4: Customization ===== -->
+  <div class="part" id="p4">
+    <div class="section">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--orange),var(--pink))"></div>
+      <div class="sim-title" style="color:var(--orange)">우리 회사에 맞추려면?</div>
+      <div class="sim-sub">Fine-tuning vs RAG — 상황에 맞는 방식 선택</div>
+      <div class="ft-dual">
+        <div class="ft-card" style="border-top-color:var(--purple)"><h3 style="color:var(--purple)">Fine-tuning</h3><div style="font-size:.5rem;color:var(--dimmed);margin-bottom:.3rem">회사 데이터로 모델 재학습</div><div class="ft-row"><span class="ft-key">비용</span><span class="ft-val" style="color:var(--orange)">중간</span></div><div class="ft-row"><span class="ft-key">시간</span><span class="ft-val">수일~수주</span></div><div class="ft-row"><span class="ft-key">업데이트</span><span class="ft-val" style="color:var(--red)">재학습</span></div><div class="ft-row"><span class="ft-key">장점</span><span class="ft-val" style="color:var(--green)">톤앤매너</span></div><div class="ft-row"><span class="ft-key">예시</span><span class="ft-val">응대 스타일</span></div></div>
+        <div class="ft-card" style="border-top-color:var(--cyan)"><h3 style="color:var(--cyan)">RAG</h3><div style="font-size:.5rem;color:var(--dimmed);margin-bottom:.3rem">학습 없이 문서 검색 보강</div><div class="ft-row"><span class="ft-key">비용</span><span class="ft-val" style="color:var(--green)">낮음</span></div><div class="ft-row"><span class="ft-key">시간</span><span class="ft-val">수시간~수일</span></div><div class="ft-row"><span class="ft-key">업데이트</span><span class="ft-val" style="color:var(--green)">문서 교체</span></div><div class="ft-row"><span class="ft-key">장점</span><span class="ft-val" style="color:var(--green)">최신 정보</span></div><div class="ft-row"><span class="ft-key">예시</span><span class="ft-val">요금제 안내</span></div></div>
+      </div>
+      <div class="explain" style="border-left-color:var(--orange)"><span class="hl">자주 바뀌는 정보 → RAG</span>, <span class="hl">행동 스타일 → Fine-tuning</span>. 대부분 RAG부터 시작.</div>
+    </div>
+  </div>
+  <div class="footer">CEO AI Intelligence · Chapter 05 · 2026</div>
+</div>
+
+<script>
+function delay(ms){return new Promise(r=>setTimeout(r,ms))}
+function sT(n){for(let i=0;i<=4;i++){document.getElementById(`t${i}`).className=i===n?'tab active':'tab';document.getElementById(`p${i}`).className=i===n?'part show':'part'}}
+function sRL(n){document.getElementById('rl-t1').style.cssText=n===1?'flex:1;padding:.3rem;text-align:center;border-radius:5px;font-size:.55rem;font-weight:700;cursor:pointer;background:var(--green);color:var(--bg)':'flex:1;padding:.3rem;text-align:center;border-radius:5px;font-size:.55rem;font-weight:700;cursor:pointer;color:var(--dimmed)';document.getElementById('rl-t2').style.cssText=n===2?'flex:1;padding:.3rem;text-align:center;border-radius:5px;font-size:.55rem;font-weight:700;cursor:pointer;background:var(--orange);color:var(--bg)':'flex:1;padding:.3rem;text-align:center;border-radius:5px;font-size:.55rem;font-weight:700;cursor:pointer;color:var(--dimmed)';document.getElementById('rl-p1').style.display=n===1?'block':'none';document.getElementById('rl-p2').style.display=n===2?'block':'none'}
+function bW(id,n){const e=document.getElementById(id);e.innerHTML='';for(let i=0;i<n;i++)e.innerHTML+=`<div class="w-b" id="${id}-${i}" style="height:${5+Math.random()*9}px;opacity:.4"></div>`}
+function updW(id,n){for(let i=0;i<n;i++){const b=document.getElementById(`${id}-${i}`);if(b){b.style.height=(5+Math.random()*9)+'px';b.style.background=`hsl(${260+Math.random()*50},65%,55%)`;b.style.opacity='.6'}}}
+
+// ===== PRE-TRAINING =====
+const batches=[[{w:["대한민국의","수도는","[M]","이다"],mi:2,ans:"서울",pred:"부산",ok:false},{w:["비가","오면","[M]","을 챙긴다"],mi:2,ans:"우산",pred:"우산",ok:true},{w:["사과는","[M]","과일이다"],mi:1,ans:"맛있는",pred:"큰",ok:false},{w:["지구는","태양을","[M]"],mi:2,ans:"돈다",pred:"돈다",ok:true}],[{w:["대한민국의","수도는","[M]","이다"],mi:2,ans:"서울",pred:"서울",ok:true},{w:["통신사의","5G","[M]","확대중"],mi:2,ans:"투자",pred:"서비스",ok:false},{w:["겨울에는","[M]","이 내린다"],mi:1,ans:"눈",pred:"눈",ok:true},{w:["AI핵심은","[M]","곱셈"],mi:1,ans:"행렬",pred:"숫자",ok:false}],[{w:["통신사","5G","[M]","확대중"],mi:2,ans:"투자",pred:"투자",ok:true},{w:["AI핵심은","[M]","곱셈"],mi:1,ans:"행렬",pred:"행렬",ok:true},{w:["GPU는","[M]","처리에 강함"],mi:1,ans:"병렬",pred:"순차",ok:false},{w:["HBM은","[M]","대역폭"],mi:1,ans:"고",pred:"고",ok:true}],[{w:["GPU는","[M]","처리에 강함"],mi:1,ans:"병렬",pred:"병렬",ok:true},{w:["LLM은","다음","[M]","예측"],mi:2,ans:"토큰",pred:"토큰",ok:true},{w:["ChatGPT는","[M]","AI"],mi:1,ans:"생성형",pred:"생성형",ok:true},{w:["사과는","[M]","과일"],mi:1,ans:"맛있는",pred:"맛있는",ok:true}],[{w:["트랜스포머","[M]","개 층"],mi:1,ans:"96",pred:"96",ok:true},{w:["토큰수↑","[M]","↑"],mi:1,ans:"비용",pred:"비용",ok:true},{w:["임베딩","[M]","차원"],mi:1,ans:"12288",pred:"12288",ok:true},{w:["엔비디아","핵심","[M]","생태계"],mi:2,ans:"CUDA",pred:"CUDA",ok:true}]];
+let tC=0,tW=0,tU=0,mV=0,ptR=false;
+async function runPT(){if(ptR)return;ptR=true;document.getElementById('pt-btn').disabled=true;resetPT(true);
+for(let b=0;b<batches.length;b++){document.getElementById('bN').textContent=b+1;const batch=batches[b];
+const left=document.getElementById('pt-left'),right=document.getElementById('pt-right');left.innerHTML='';right.innerHTML='';
+// Build sentences
+batch.forEach((s,i)=>{let h='';s.w.forEach((w,j)=>{if(j===s.mi)h+=`<span class="s-mask hidden" id="m-${i}">[???]</span> `;else h+=`<span style="color:var(--muted)">${w} </span>`});left.innerHTML+=`<div class="row-card active" id="sr-${i}">${h}</div>`;right.innerHTML+=`<div class="res-card" id="rr-${i}"></div>`});
+document.getElementById('bP').textContent='예측 중';document.getElementById('bP').style.cssText='background:rgba(245,158,11,.1);color:var(--orange)';
+document.getElementById('pt-st').textContent='예측...';document.getElementById('pt-st').style.cssText='background:rgba(245,158,11,.1);color:var(--orange)';
+await delay(600);
+// Show results
+let bW2=0;
+for(let i=0;i<batch.length;i++){const s=batch[i],mk=document.getElementById(`m-${i}`),res=document.getElementById(`rr-${i}`);mk.textContent=s.pred;res.classList.add('show');
+if(s.ok){mk.className='s-mask correct';document.getElementById(`sr-${i}`).className='row-card ok';res.innerHTML=`<span style="color:var(--green)">✓ "${s.pred}"</span>`;res.classList.add('ok');tC++}
+else{mk.className='s-mask wrong';document.getElementById(`sr-${i}`).className='row-card bad';res.innerHTML=`<span style="color:var(--red)">✗ "${s.pred}"→"${s.ans}"</span>`;res.classList.add('bad');tW++;bW2++}
+await delay(250)}
+if(bW2>0){document.getElementById('pt-llm').classList.add('updating');document.getElementById('pt-st').textContent='Backprop';await delay(600);updW('pt-wb',10);tU++;mV++;document.getElementById('pt-llm').classList.remove('updating');document.getElementById('pt-llm').classList.add('updated');document.getElementById('pt-st').textContent=`v${mV}`;document.getElementById('pt-st').style.cssText='background:rgba(16,185,129,.1);color:var(--green)';await delay(300);document.getElementById('pt-llm').classList.remove('updated')}
+else{document.getElementById('pt-st').textContent='전부정답!';document.getElementById('pt-st').style.cssText='background:rgba(16,185,129,.1);color:var(--green)';await delay(300)}
+document.getElementById('sC').textContent=tC;document.getElementById('sW').textContent=tW;document.getElementById('sU').textContent=tU;document.getElementById('sV').textContent=`v${mV}`;
+document.getElementById('tP').style.width=((b+1)/5*100)+'%';await delay(200)}
+document.getElementById('bP').textContent='완료! ✅';document.getElementById('bP').style.cssText='background:rgba(16,185,129,.1);color:var(--green)';ptR=false;document.getElementById('pt-btn').disabled=false}
+function resetPT(k){if(!k)ptR=false;tC=0;tW=0;tU=0;mV=0;document.getElementById('pt-left').innerHTML='<div style="color:var(--dimmed);font-size:.5rem;text-align:center;padding:1.5rem .3rem">▶ 버튼으로 시작</div>';document.getElementById('pt-right').innerHTML='<div style="color:var(--dimmed);font-size:.5rem;text-align:center;padding:1.5rem .3rem">결과 표시</div>';bW('pt-wb',10);document.getElementById('pt-st').textContent='v0';document.getElementById('pt-st').style.cssText='background:rgba(139,92,246,.1);color:var(--purple)';document.getElementById('pt-llm').classList.remove('updating','updated');document.getElementById('bN').textContent='-';document.getElementById('bP').textContent='대기';document.getElementById('bP').style.cssText='background:rgba(255,255,255,.05);color:var(--dimmed)';document.getElementById('sC').textContent='0';document.getElementById('sW').textContent='0';document.getElementById('sU').textContent='0';document.getElementById('sV').textContent='v0';document.getElementById('tP').style.width='0%';if(!k)document.getElementById('pt-btn').disabled=false}
+
+// ===== SFT =====
+const sftD=[{q:"서울의 인구수는?",a:"서울의 인구는 약 970만 명입니다.",b:"서울의 인구수는? 이 질문은..."},{q:"5G와 LTE 차이는?",a:"5G는 LTE보다 최대 20배 빠릅니다.",b:"5G와 LTE의 차이는? 모바일..."},{q:"비올때 뭘 챙겨야해?",a:"우산을 챙기시는 게 좋습니다.",b:"비가 올 때 뭘 챙겨야 해? 날씨에..."}];
+async function runSFT(){document.getElementById('sft-btn').disabled=true;const L=document.getElementById('sft-left'),R=document.getElementById('sft-right');L.innerHTML='';R.innerHTML='';bW('sft-wb',10);
+for(let i=0;i<sftD.length;i++){const d=sftD[i];L.innerHTML+=`<div class="row-card active" id="sfr-${i}"><span class="tag-q">Q</span><span style="color:var(--white);font-weight:600;font-size:.5rem">${d.q}</span></div><div class="row-card" style="border-left-color:var(--green)"><span class="tag-a">A</span><span style="color:var(--green);font-size:.5rem">${d.a}</span></div>`;
+R.innerHTML+=`<div class="res-card" id="sfres-${i}"><span style="color:var(--red);font-size:.4rem">${d.b}</span></div>`;
+document.getElementById('sft-st').textContent='학습중';document.getElementById('sft-st').style.cssText='background:rgba(245,158,11,.1);color:var(--orange)';document.getElementById('sft-llm').classList.add('updating');await delay(700);updW('sft-wb',10);document.getElementById('sft-llm').classList.remove('updating');document.getElementById('sft-llm').classList.add('updated');
+const r=document.getElementById(`sfres-${i}`);r.classList.add('show','ok');r.innerHTML=`<span style="color:var(--green);font-size:.4rem">✓ ${d.a}</span>`;
+document.getElementById('sft-st').textContent=`v${i+1}`;document.getElementById('sft-st').style.cssText='background:rgba(16,185,129,.1);color:var(--green)';await delay(300);document.getElementById('sft-llm').classList.remove('updated');document.getElementById(`sfr-${i}`).classList.remove('active');document.getElementById(`sfr-${i}`).classList.add('ok')}
+document.getElementById('sft-st').textContent='SFT완료';document.getElementById('sft-btn').disabled=false}
+function resetSFT(){document.getElementById('sft-left').innerHTML='<div style="color:var(--dimmed);font-size:.5rem;text-align:center;padding:1.5rem .3rem">Q&A 쌍 표시</div>';document.getElementById('sft-right').innerHTML='<div style="color:var(--dimmed);font-size:.5rem;text-align:center;padding:1.5rem .3rem">결과 표시</div>';bW('sft-wb',10);document.getElementById('sft-st').textContent='대기';document.getElementById('sft-st').style.cssText='background:rgba(59,130,246,.1);color:var(--blue)';document.getElementById('sft-llm').classList.remove('updating','updated');document.getElementById('sft-btn').disabled=false}
+
+// ===== RLHF =====
+const rlQ="고객에게 요금 인상을 안내하는 방법은?";
+const rlA=[{t:"요금이 올랐습니다.",rk:3,l:"무례",c:"var(--red)"},{t:"안녕하세요. 다음 달부터 요금이 소폭 조정됩니다. 혜택을 안내드리겠습니다.",rk:1,l:"정중+상세",c:"var(--green)"},{t:"요금 인상이 불가피합니다.",rk:2,l:"설명부족",c:"var(--orange)"}];
+async function runRLHF(){document.getElementById('rlhf-btn').disabled=true;const a=document.getElementById('rlhf-area');
+a.innerHTML=`<div class="row-card active" style="margin-bottom:.4rem"><span class="tag-q">Q</span><span style="color:var(--white);font-size:.5rem">${rlQ}</span></div><div style="font-size:.5rem;color:var(--dimmed);margin-bottom:.2rem">LLM이 3개 답변 생성:</div><div id="rla"></div><div id="rls" style="margin-top:.3rem;font-size:.5rem;color:var(--dimmed);text-align:center"></div>`;
+const ans=document.getElementById('rla');
+for(let i=0;i<rlA.length;i++){ans.innerHTML+=`<div class="grpo-group" id="rla-${i}" style="opacity:0;transition:all .3s"><b style="color:var(--white)">답변${i+1}:</b> <span style="color:var(--muted);font-size:.45rem">${rlA[i].t}</span><div id="rlr-${i}" style="margin-top:.1rem"></div></div>`;await delay(300);document.getElementById(`rla-${i}`).style.opacity='1'}
+await delay(500);document.getElementById('rls').innerHTML='👤 <span style="color:var(--green)">사람이 순위 매김:</span>';
+await delay(400);for(let i=0;i<rlA.length;i++){document.getElementById(`rlr-${i}`).innerHTML=`<span style="color:${rlA[i].c};font-weight:700;font-size:.48rem">#${rlA[i].rk} — ${rlA[i].l}</span>`;document.getElementById(`rla-${i}`).className=`grpo-group ${rlA[i].rk===1?'best':rlA[i].rk===2?'mid':'worst'}`;await delay(200)}
+await delay(400);document.getElementById('rls').innerHTML='🧠 <span style="color:var(--orange)">Reward Model → LLM 업데이트 → 1등 스타일 강화</span>';document.getElementById('rlhf-btn').disabled=false}
+function resetRLHF(){document.getElementById('rlhf-area').innerHTML='<div style="color:var(--dimmed);font-size:.5rem;text-align:center;padding:1rem">▶ 시작</div>';document.getElementById('rlhf-btn').disabled=false}
+
+// ===== GRPO =====
+const gQ="2x+3=7, x=?";
+const gA=[{t:"2x=4 → x=2 ✓",s:1,ok:true,l:"정답+올바른풀이"},{t:"x=7-3=4... 아 잠깐 2x=4 → x=2 ✓",s:.8,ok:true,l:"자기수정(Aha!)"},{t:"2x=10 → x=5 ✗",s:0,ok:false,l:"오답"},{t:"x=-0.5 ✗",s:0,ok:false,l:"오답"}];
+async function runGRPO(){document.getElementById('grpo-btn').disabled=true;const a=document.getElementById('grpo-area');
+a.innerHTML=`<div class="row-card active" style="margin-bottom:.4rem"><span class="tag-q">문제</span><span style="color:var(--white);font-size:.5rem">${gQ}</span><span style="color:var(--dimmed);font-size:.4rem;margin-left:.3rem">(정답:x=2)</span></div><div style="font-size:.5rem;color:var(--dimmed);margin-bottom:.2rem">LLM이 4개 답변 생성 (그룹):</div><div id="ga"></div><div id="gs" style="margin-top:.3rem;font-size:.48rem"></div>`;
+const ans=document.getElementById('ga');
+for(let i=0;i<gA.length;i++){ans.innerHTML+=`<div class="grpo-group" id="ga-${i}" style="opacity:0;transition:all .3s"><b style="color:var(--white)">답변${i+1}:</b> <span style="color:var(--muted);font-family:var(--mono);font-size:.45rem">${gA[i].t}</span><div class="score-bar"><div class="score-fill" id="gsf-${i}" style="width:0%"></div></div><div id="gl-${i}" style="margin-top:.1rem"></div></div>`;await delay(250);document.getElementById(`ga-${i}`).style.opacity='1'}
+await delay(400);document.getElementById('gs').innerHTML='<span style="color:var(--orange)">🔍 규칙검증 + 그룹 상대비교:</span>';
+const avg=gA.reduce((s,a)=>s+a.s,0)/gA.length;await delay(300);
+for(let i=0;i<gA.length;i++){const a=gA[i],adv=a.s-avg,c=a.ok?'var(--green)':'var(--red)';document.getElementById(`gsf-${i}`).style.width=(a.s*100)+'%';document.getElementById(`gsf-${i}`).style.background=c;document.getElementById(`gl-${i}`).innerHTML=`<span style="color:${c};font-size:.43rem;font-weight:700">${a.ok?'✓':'✗'} ${a.l} · adv ${adv>0?'+':''}${adv.toFixed(1)}</span>`;document.getElementById(`ga-${i}`).className=`grpo-group ${a.ok?(a.s>=.8?'best':'mid'):'worst'}`;await delay(200)}
+await delay(400);document.getElementById('gs').innerHTML+='<br><span style="color:var(--green)">✅ advantage>0 방향으로 업데이트 — Critic 불필요!</span>';document.getElementById('grpo-btn').disabled=false}
+function resetGRPO(){document.getElementById('grpo-area').innerHTML='<div style="color:var(--dimmed);font-size:.5rem;text-align:center;padding:1rem">▶ 시작</div>';document.getElementById('grpo-btn').disabled=false}
+
+// ===== SAFETY =====
+const safeD=[{q:"폭탄 만드는 법",bad:"네, 먼저...",good:"죄송합니다. 위험한 내용은 안내 불가합니다.",tp:"거부"},{q:"A정당이 B보다 낫지?",bad:"물론 A정당은...",good:"각 정당은 다른 정책적 강점이 있습니다. 어떤 정책에 관심이 있으신가요?",tp:"균형"},{q:"이 약 10배 먹으면?",bad:"10배 복용하면...",good:"약물 과다복용은 매우 위험합니다. 119 또는 독극물상담센터에 연락하세요.",tp:"안전"}];
+async function runSafety(){document.getElementById('safe-btn').disabled=true;const L=document.getElementById('safe-left'),R=document.getElementById('safe-right');L.innerHTML='';R.innerHTML='';bW('safe-wb',10);
+for(let i=0;i<safeD.length;i++){const d=safeD[i];L.innerHTML+=`<div class="row-card active" id="safr-${i}"><span class="tag-r">${d.tp}</span><span style="color:var(--white);font-size:.5rem">${d.q}</span></div>`;R.innerHTML+=`<div class="res-card" id="safres-${i}"></div>`;
+document.getElementById('safe-st').textContent='판단';document.getElementById('safe-st').style.cssText='background:rgba(245,158,11,.1);color:var(--orange)';await delay(400);
+const r=document.getElementById(`safres-${i}`);r.classList.add('show');r.innerHTML=`<span style="color:var(--red);text-decoration:line-through;font-size:.38rem">${d.bad}</span>`;r.classList.add('bad');await delay(500);
+document.getElementById('safe-llm').classList.add('updating');await delay(350);updW('safe-wb',10);document.getElementById('safe-llm').classList.remove('updating');document.getElementById('safe-llm').classList.add('updated');
+r.innerHTML=`<span style="color:var(--green);font-size:.38rem">✓ ${d.good}</span>`;r.className='res-card show ok';document.getElementById(`safr-${i}`).className='row-card ok';
+document.getElementById('safe-st').textContent=d.tp;document.getElementById('safe-st').style.cssText='background:rgba(16,185,129,.1);color:var(--green)';await delay(300);document.getElementById('safe-llm').classList.remove('updated')}
+document.getElementById('safe-st').textContent='완료';document.getElementById('safe-btn').disabled=false}
+function resetSafety(){document.getElementById('safe-left').innerHTML='<div style="color:var(--dimmed);font-size:.5rem;text-align:center;padding:1.5rem .3rem">위험 요청</div>';document.getElementById('safe-right').innerHTML='<div style="color:var(--dimmed);font-size:.5rem;text-align:center;padding:1.5rem .3rem">안전 응답</div>';bW('safe-wb',10);document.getElementById('safe-st').textContent='대기';document.getElementById('safe-st').style.cssText='background:rgba(239,68,68,.1);color:var(--red)';document.getElementById('safe-llm').classList.remove('updating','updated');document.getElementById('safe-btn').disabled=false}
+
+// Init
+resetPT();resetSFT();resetRLHF();resetGRPO();resetSafety();
+</script>
+</body>
+</html>

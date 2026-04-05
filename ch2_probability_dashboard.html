@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH2. 확률의 세계</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ========================================= */
+  /* 🌟 사장님 맞춤형 UI/글꼴 업그레이드 코드 🌟 */
+  /* ========================================= */
+  
+  /* 1. 전체 글자 크기 및 화면 1.3배 확대 (모든 비율이 맞춰서 커집니다) */
+  html { font-size: 21px !important; }
+
+  /* 2. 각 영역(박스)을 더 입체적이고 고급스럽게 표현 (입체 그림자 & 테두리) */
+  .section, .panel, .illust, .card, .sim-panel {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 16px !important;
+  }
+
+  /* 3. 제목에 은은한 빛 효과를 주어 가독성 및 세련미 향상 */
+  .hdr h1 {
+    text-shadow: 0 4px 20px rgba(255, 255, 255, 0.15) !important;
+  }
+
+  /* 4. 버튼이나 탭에 마우스를 올렸을 때 살짝 떠오르는 부드러운 애니메이션 */
+  button, .tab {
+    transition: all 0.2s ease-in-out !important;
+  }
+  button:not(:disabled):hover, .tab:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.2);
+  }
+  /* ========================================= */
+:root{--bg:#0B1120;--bg2:#141E33;--bg3:#1C2A47;--blue:#3B82F6;--cyan:#06B6D4;--green:#10B981;--orange:#F59E0B;--pink:#EC4899;--purple:#8B5CF6;--red:#EF4444;--white:#F1F5F9;--muted:#94A3B8;--dimmed:#64748B;--font:'Noto Sans KR',sans-serif;--mono:'JetBrains Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}body{background:var(--bg);color:var(--white);font-family:var(--font)}.wrap{max-width:1060px;margin:0 auto;padding:1.25rem}
+.hdr{text-align:center;margin-bottom:1.25rem}.hdr-tag{font-family:var(--mono);font-size:.65rem;color:var(--cyan);letter-spacing:4px;text-transform:uppercase;margin-bottom:.3rem}.hdr h1{font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,var(--white),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.2rem}.hdr p{color:var(--muted);font-size:.85rem}
+.section{background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:1.5rem;margin-bottom:1rem;position:relative;overflow:hidden}
+.gen-display{background:var(--bg3);border-radius:10px;padding:.8rem 1rem;margin-bottom:.6rem;min-height:48px;font-size:1.1rem;font-weight:700;line-height:1.8}
+.gen-word{display:inline;opacity:.15;transition:all .4s}.gen-word.active{opacity:1;color:var(--cyan)}.gen-word.done{opacity:1;color:var(--white)}
+.gen-cursor{display:inline-block;width:2px;height:1.1rem;background:var(--cyan);animation:blink 1s infinite;vertical-align:text-bottom;margin-left:2px}
+@keyframes blink{0%,50%{opacity:1}51%,100%{opacity:0}}
+.formula-area{background:var(--bg3);border-radius:10px;padding:.7rem .9rem;margin-bottom:.6rem}
+.formula-title{font-size:.7rem;font-weight:700;color:var(--dimmed);margin-bottom:.35rem}
+.formula-row{display:flex;align-items:center;gap:.15rem;flex-wrap:wrap;font-family:var(--mono);font-size:.72rem;min-height:26px}
+.f-term{padding:.12rem .3rem;border-radius:4px;transition:all .4s;opacity:.2}
+.f-term.active{opacity:1;background:rgba(6,182,212,.12);color:var(--cyan);border:1px solid rgba(6,182,212,.25)}
+.f-term.done{opacity:1;background:rgba(255,255,255,.04);color:var(--muted)}
+.f-mul{color:var(--dimmed);opacity:.3;transition:opacity .3s}.f-mul.show{opacity:1}
+.f-result{font-size:.95rem;font-weight:900;margin-top:.25rem;opacity:0;transition:opacity .5s}.f-result.show{opacity:1}
+
+/* Dice section */
+.dice-panel{background:var(--bg3);border-radius:10px;padding:.8rem 1rem;margin-bottom:.5rem}
+.dice-header{display:flex;align-items:flex-start;gap:.75rem;margin-bottom:.5rem}
+.dice-explain{flex:1}
+.dice-explain-title{font-size:.85rem;font-weight:900;color:var(--cyan);margin-bottom:.2rem}
+.dice-explain-text{font-size:.7rem;color:var(--muted);line-height:1.5}
+.dice-explain-text b{color:var(--white)}
+/* Pie-like dice visualization */
+.dice-visual{width:90px;height:90px;flex-shrink:0;position:relative}
+.dice-visual canvas{width:100%;height:100%}
+.dice-visual-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.3rem}
+
+.dice-context{font-size:.75rem;color:var(--dimmed);margin-bottom:.4rem;min-height:1.2rem}.dice-context b{color:var(--white)}
+.dice-bars{margin-bottom:.2rem}
+.dice-row{display:flex;align-items:center;gap:.4rem;margin-bottom:.25rem}
+.dice-word{font-size:.78rem;font-weight:700;width:70px;text-align:right}
+.dice-track{flex:1;height:20px;background:rgba(255,255,255,.04);border-radius:4px;overflow:hidden}
+.dice-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:5px;font-family:var(--mono);font-size:.55rem;font-weight:700;width:0%;transition:width .8s ease-out}
+.dice-pct{font-family:var(--mono);font-size:.65rem;width:50px;text-align:right;color:var(--dimmed)}
+.dice-etc{font-size:.6rem;color:var(--dimmed);text-align:center;font-family:var(--mono);margin-bottom:.2rem}
+.dice-selected{text-align:center;font-size:.9rem;font-weight:900;min-height:1.5rem;margin-top:.2rem;opacity:0;transition:opacity .4s}.dice-selected.show{opacity:1}
+
+.step-bar{display:flex;gap:3px;margin-bottom:.25rem}.sd{flex:1;height:5px;border-radius:3px;background:var(--bg3);transition:all .3s}.sd.done{background:var(--cyan)}.sd.cur{background:var(--orange);box-shadow:0 0 5px var(--orange)}
+.step-label{font-family:var(--mono);font-size:.65rem;color:var(--dimmed);margin-bottom:.5rem;text-align:center}.step-label .cur{color:var(--orange);font-weight:700}
+
+.temp-row{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.5rem}
+.temp-card{padding:.45rem .55rem;border-radius:7px;font-size:.68rem;line-height:1.5;text-align:center}
+.temp-card b{display:block;font-size:.78rem;margin-bottom:.1rem}
+
+/* Insight section */
+.insight-grid{display:grid;grid-template-columns:1fr 1fr;gap:.65rem;margin-bottom:.6rem}
+.insight-card{background:var(--bg3);border-radius:10px;padding:.9rem;border-left:3px solid var(--dimmed);transition:all .4s;cursor:pointer}
+.insight-card:hover{transform:translateY(-2px)}
+.insight-card.lit{border-left-color:var(--cyan);background:rgba(6,182,212,.03)}
+.insight-icon{font-size:1.4rem;margin-bottom:.25rem}
+.insight-q{font-size:.82rem;font-weight:700;margin-bottom:.2rem;color:var(--white);line-height:1.5}
+.insight-blank{display:inline-block;padding:.08rem .35rem;border-radius:3px;background:rgba(6,182,212,.12);color:var(--cyan);border:1px dashed rgba(6,182,212,.3);font-weight:900;min-width:35px;text-align:center;transition:all .3s}
+.insight-blank.revealed{background:rgba(16,185,129,.12);color:var(--green);border-color:var(--green);border-style:solid}
+.insight-need{font-size:.68rem;color:var(--dimmed);margin-top:.25rem;line-height:1.5}.insight-need b{color:var(--orange)}
+.depth-bar{display:flex;gap:2px;margin:.3rem 0;height:6px}.depth-seg{flex:1;border-radius:3px;transition:all .5s;opacity:.15}.depth-seg.lit{opacity:1}
+.insight-conclusion{background:rgba(6,182,212,.06);border:1px solid rgba(6,182,212,.15);border-radius:10px;padding:1rem;text-align:center}
+.insight-conclusion .big{font-size:1rem;font-weight:900;color:var(--cyan);margin-bottom:.3rem;line-height:1.5}
+.insight-conclusion .sub{font-size:.78rem;color:var(--muted);line-height:1.6}
+
+.ctrl{display:flex;justify-content:center;gap:.5rem;margin:.5rem 0}
+.btn{background:var(--bg2);border:1px solid rgba(255,255,255,.1);color:var(--white);padding:.4rem 1rem;border-radius:7px;font-family:var(--font);font-size:.7rem;font-weight:600;cursor:pointer;transition:all .3s}
+.btn:hover{border-color:rgba(255,255,255,.25);transform:translateY(-1px)}.btn:disabled{opacity:.3;cursor:not-allowed;transform:none}
+.btn-go{background:linear-gradient(135deg,var(--cyan),var(--blue));border:none;color:var(--white)}
+.explain{font-size:.7rem;color:var(--dimmed);line-height:1.6;padding:.5rem;background:rgba(0,0,0,.2);border-radius:7px;border-left:3px solid var(--dimmed);margin-top:.4rem}.explain .hl{color:var(--white);font-weight:700}
+.footer{text-align:center;padding:.75rem 0;color:var(--dimmed);font-size:.55rem;border-top:1px solid rgba(255,255,255,.04);margin-top:.5rem}
+@media(max-width:750px){.insight-grid,.temp-row{grid-template-columns:1fr}.dice-header{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr"><div class="hdr-tag">Chapter 02</div><h1>확률의 세계</h1><p>생성형 AI는 "확률분포를 학습"한다 — 이것이 정확히 무슨 뜻인가</p></div>
+
+  <!-- Section 1: Conditional probability + dice -->
+  <div class="section">
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--cyan),var(--green))"></div>
+    <div style="font-size:1rem;font-weight:900;margin-bottom:.1rem">문장 생성 = 조건부 확률의 곱 × 10만 면 주사위</div>
+    <div style="font-size:.75rem;color:var(--muted);margin-bottom:.6rem">한 토큰씩 확률분포에서 골라 이어붙이는 과정을 따라가 보세요</div>
+
+    <div class="step-bar" id="stepBar"></div>
+    <div class="step-label">현재: <span class="cur" id="curStep">▶ 시작 버튼을 눌러주세요</span></div>
+
+    <div class="gen-display" id="genDisplay"></div>
+
+    <!-- Dice with explanation -->
+    <div class="dice-panel">
+      <div class="dice-header">
+        <div class="dice-explain">
+          <div class="dice-explain-title">🎲 10만 면 주사위란?</div>
+          <div class="dice-explain-text">
+            LLM이 알고 있는 <b>모든 단어(약 10만 개)</b>가 주사위의 면입니다.<br>
+            각 면의 <b>넓이가 확률에 비례</b>해서 — "서울"은 넓은 면, "바나나"는 거의 보이지 않는 면.<br>
+            <b>문맥이 바뀌면 주사위 모양이 완전히 바뀝니다.</b> "수도는 ___"과 "저녁 뭐 ___"는 전혀 다른 주사위.
+          </div>
+        </div>
+        <div class="dice-visual"><canvas id="dicePie" width="180" height="180"></canvas><div class="dice-visual-label">🎲</div></div>
+      </div>
+      <div class="dice-context" id="diceCtx">문맥이 여기 표시됩니다</div>
+      <div class="dice-bars" id="diceBars"></div>
+      <div class="dice-etc" id="diceEtc"></div>
+      <div class="dice-selected" id="diceSelected"></div>
+    </div>
+
+    <div class="formula-area">
+      <div class="formula-title">📐 문장 확률 = 각 토큰 조건부 확률의 곱</div>
+      <div class="formula-row" id="formulaRow"></div>
+      <div class="f-result" id="fResult"></div>
+    </div>
+
+    <div class="ctrl">
+      <button class="btn btn-go" id="mainBtn" onclick="nextStep()">▶ 다음 토큰 생성</button>
+      <button class="btn" onclick="resetMain()">↺ 리셋</button>
+    </div>
+
+    <div class="temp-row">
+      <div class="temp-card" style="background:rgba(59,130,246,.05);border:1px solid rgba(59,130,246,.1)">
+        <b style="color:var(--blue)">🌡️ Temperature 낮음 (0.1)</b>큰 면이 압도적 → <span style="color:var(--blue)">정확하지만 뻔한 답</span><br>요금 안내 등 정확성 필요 업무
+      </div>
+      <div class="temp-card" style="background:rgba(236,72,153,.05);border:1px solid rgba(236,72,153,.1)">
+        <b style="color:var(--pink)">🌡️ Temperature 높음 (1.5)</b>면 크기 차이 줄어듦 → <span style="color:var(--pink)">창의적이지만 가끔 엉뚱</span><br>마케팅 카피 등 창의성 필요 업무
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2: Why prediction = intelligence -->
+  <div class="section">
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--purple))"></div>
+    <div style="font-size:1rem;font-weight:900;margin-bottom:.1rem">💡 핵심 통찰: 왜 "다음 단어 맞추기"가 지능이 되는가</div>
+    <div style="font-size:.75rem;color:var(--muted);margin-bottom:.75rem">빈칸을 정확히 채우려면, 점점 더 깊은 수준의 지식이 필요합니다. 카드를 클릭해보세요.</div>
+
+    <div class="insight-grid" id="insightGrid">
+      <div class="insight-card" id="ic-0" onclick="revealInsight(0)">
+        <div class="insight-icon">🌧️</div>
+        <div class="insight-q">"비가 와서 우산을 <span class="insight-blank" id="ib-0">???</span>"</div>
+        <div class="insight-need"><b>필요 능력:</b> 인과관계 이해<br>비 → 우산이라는 일상적 연결</div>
+        <div class="depth-bar"><div class="depth-seg" style="background:var(--green)"></div><div class="depth-seg" style="background:var(--bg3)"></div><div class="depth-seg" style="background:var(--bg3)"></div><div class="depth-seg" style="background:var(--bg3)"></div></div>
+        <div style="font-size:.55rem;color:var(--dimmed);font-family:var(--mono)">지식 깊이: ★☆☆☆</div>
+      </div>
+      <div class="insight-card" id="ic-1" onclick="revealInsight(1)">
+        <div class="insight-icon">📊</div>
+        <div class="insight-q">"고객 이탈률이 상승하여<br>리텐션 전략을 <span class="insight-blank" id="ib-1">???</span>"</div>
+        <div class="insight-need"><b>필요 능력:</b> 비즈니스 전략 이해<br>이탈률↑ → 대응 전략이라는 경영 판단</div>
+        <div class="depth-bar"><div class="depth-seg" style="background:var(--orange)"></div><div class="depth-seg" style="background:var(--orange)"></div><div class="depth-seg" style="background:var(--bg3)"></div><div class="depth-seg" style="background:var(--bg3)"></div></div>
+        <div style="font-size:.55rem;color:var(--dimmed);font-family:var(--mono)">지식 깊이: ★★☆☆</div>
+      </div>
+      <div class="insight-card" id="ic-2" onclick="revealInsight(2)">
+        <div class="insight-icon">📡</div>
+        <div class="insight-q">"AI 기반 네트워크 최적화로<br>트래픽 처리 효율이 <span class="insight-blank" id="ib-2">???</span>"</div>
+        <div class="insight-need"><b>필요 능력:</b> 통신 기술 + AI 지식<br>AI+네트워크 최적화의 결과를 추론</div>
+        <div class="depth-bar"><div class="depth-seg" style="background:var(--red)"></div><div class="depth-seg" style="background:var(--red)"></div><div class="depth-seg" style="background:var(--red)"></div><div class="depth-seg" style="background:var(--bg3)"></div></div>
+        <div style="font-size:.55rem;color:var(--dimmed);font-family:var(--mono)">지식 깊이: ★★★☆</div>
+      </div>
+      <div class="insight-card" id="ic-3" onclick="revealInsight(3)">
+        <div class="insight-icon">🧬</div>
+        <div class="insight-q">"CRISPR-Cas9으로 p53 유전자를<br>편집하면 종양 억제가 <span class="insight-blank" id="ib-3">???</span>"</div>
+        <div class="insight-need"><b>필요 능력:</b> 생명과학 + 논리적 추론<br>유전자 기능과 결과를 과학적으로 추론</div>
+        <div class="depth-bar"><div class="depth-seg" style="background:var(--purple)"></div><div class="depth-seg" style="background:var(--purple)"></div><div class="depth-seg" style="background:var(--purple)"></div><div class="depth-seg" style="background:var(--purple)"></div></div>
+        <div style="font-size:.55rem;color:var(--dimmed);font-family:var(--mono)">지식 깊이: ★★★★</div>
+      </div>
+    </div>
+    <div class="ctrl"><button class="btn btn-go" onclick="revealAll()">▶ 전체 정답 보기</button></div>
+
+    <div class="insight-conclusion">
+      <div class="big">다음 단어 맞추기를 극한까지 추구하면,<br>결국 세상을 이해하게 된다</div>
+      <div class="sub">
+        빈칸이 어려울수록 → 더 깊은 지식과 추론이 필요<br>
+        LLM은 수조 문장에서 이 "빈칸 맞추기"를 반복하여 → <b style="color:var(--cyan)">세상의 지식을 확률의 형태로 저장</b>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">CEO AI Intelligence · Chapter 02 · 2026</div>
+</div>
+
+<script>
+function delay(ms){return new Promise(r=>setTimeout(r,ms))}
+const STEPS=5;
+const tokens=[
+  {word:"대한민국의",prob:.80,context:"[시작]",topK:[{w:"대한민국의",p:80},{w:"한국의",p:8},{w:"우리나라의",p:5},{w:"서울의",p:2},{w:"일본의",p:.5}]},
+  {word:" 수도는",prob:.90,context:"대한민국의 ___",topK:[{w:"수도는",p:90},{w:"경제는",p:3},{w:"인구는",p:2},{w:"대통령은",p:1.5},{w:"문화는",p:.3}]},
+  {word:" 서울",prob:.95,context:"대한민국의 수도는 ___",topK:[{w:"서울",p:95},{w:"부산",p:1.5},{w:"대전",p:.5},{w:"인천",p:.3},{w:"바나나",p:.0001}]},
+  {word:"이",prob:.85,context:"...수도는 서울___",topK:[{w:"이",p:85},{w:"에",p:5},{w:"은",p:3},{w:"을",p:1},{w:"와",p:.5}]},
+  {word:"다.",prob:.92,context:"...서울이___",topK:[{w:"다.",p:92},{w:"며",p:3},{w:"라고",p:1.5},{w:"지만",p:.8},{w:"니까",p:.3}]},
+];
+let curIdx=-1,cumProb=1;
+
+// Dice pie chart
+const pieCanvas=document.getElementById('dicePie');
+const pieCtx=pieCanvas.getContext('2d');
+function drawPie(topK){
+  pieCtx.clearRect(0,0,180,180);
+  const cx=90,cy=90,r=80;
+  // Draw pie slices
+  let startAngle=-Math.PI/2;
+  const total=100;
+  const colors=['#06B6D4','#3B82F6','#8B5CF6','#64748B','#334155'];
+  const others=total-topK.reduce((s,k)=>s+k.p,0);
+  const slices=[...topK.map(k=>k.p),others>0?others:0];
+  slices.forEach((p,i)=>{
+    const sliceAngle=(p/total)*Math.PI*2;
+    pieCtx.beginPath();pieCtx.moveTo(cx,cy);pieCtx.arc(cx,cy,r,startAngle,startAngle+sliceAngle);pieCtx.closePath();
+    pieCtx.fillStyle=i<colors.length?colors[i]:'#1C2A47';pieCtx.fill();
+    pieCtx.strokeStyle='#0B1120';pieCtx.lineWidth=1.5;pieCtx.stroke();
+    startAngle+=sliceAngle;
+  });
+  // Center hole
+  pieCtx.beginPath();pieCtx.arc(cx,cy,30,0,Math.PI*2);pieCtx.fillStyle='#141E33';pieCtx.fill();
+}
+
+function buildStepBar(){const e=document.getElementById('stepBar');e.innerHTML='';for(let i=0;i<STEPS;i++)e.innerHTML+=`<div class="sd" id="sd-${i}"></div>`}
+function setStep(i,t){for(let j=0;j<STEPS;j++)document.getElementById(`sd-${j}`).className=j<i?'sd done':j===i?'sd cur':'sd';document.getElementById('curStep').textContent=t}
+function buildGenDisplay(){document.getElementById('genDisplay').innerHTML=tokens.map((t,i)=>`<span class="gen-word" id="gw-${i}">${t.word}</span>`).join('')+'<span class="gen-cursor" id="gc"></span>'}
+function buildFormula(){const el=document.getElementById('formulaRow');el.innerHTML='P = ';tokens.forEach((t,i)=>{if(i>0)el.innerHTML+=`<span class="f-mul" id="fm-${i}">×</span>`;el.innerHTML+=`<span class="f-term" id="ft-${i}">${t.prob}</span>`})}
+
+function showDice(idx){
+  const t=tokens[idx];
+  document.getElementById('diceCtx').innerHTML=`현재 문맥: <b>"${t.context}"</b>`;
+  const bars=document.getElementById('diceBars');bars.innerHTML='';
+  const maxP=t.topK[0].p;
+  t.topK.forEach((k,i)=>{
+    const color=i===0?'var(--cyan)':i<3?'var(--blue)':'var(--dimmed)';
+    bars.innerHTML+=`<div class="dice-row"><span class="dice-word" style="color:${color}">"${k.w}"</span><div class="dice-track"><div class="dice-fill" id="df-${i}" style="background:${color};color:var(--bg)">${k.p>=1?k.p+'%':k.p+'%'}</div></div><span class="dice-pct">${k.p>=1?k.p+'%':k.p+'%'}</span></div>`;
+  });
+  document.getElementById('diceEtc').textContent=`... 나머지 ~99,995개 토큰이 남은 면을 나눠 가짐`;
+  setTimeout(()=>t.topK.forEach((k,i)=>{document.getElementById(`df-${i}`).style.width=Math.max(k.p/maxP*80,1)+'%'}),50);
+  drawPie(t.topK);
+  document.getElementById('diceSelected').className='dice-selected';document.getElementById('diceSelected').innerHTML='';
+}
+
+async function nextStep(){
+  curIdx++;
+  if(curIdx>=STEPS){resetMain();return}
+  document.getElementById('mainBtn').disabled=true;
+  const t=tokens[curIdx];
+  setStep(curIdx,`토큰 ${curIdx+1}/${STEPS}: "${t.word.trim()}"`);
+  showDice(curIdx);
+  await delay(700);
+  document.getElementById('diceSelected').innerHTML=`🎲 굴림 → <span style="color:var(--cyan);font-weight:900">"${t.word.trim()}"</span> 선택! (${t.prob*100}%)`;
+  document.getElementById('diceSelected').classList.add('show');
+  await delay(350);
+  document.getElementById(`gw-${curIdx}`).classList.add('active');
+  await delay(250);document.getElementById(`gw-${curIdx}`).className='gen-word done';
+  document.getElementById(`ft-${curIdx}`).classList.add('active');
+  if(curIdx>0)document.getElementById(`fm-${curIdx}`).classList.add('show');
+  await delay(200);document.getElementById(`ft-${curIdx}`).className='f-term done';
+  cumProb*=t.prob;
+  if(curIdx===STEPS-1){
+    document.getElementById('fResult').innerHTML=`= <span style="color:var(--green);font-size:1rem">${(cumProb*100).toFixed(1)}%</span> <span style="color:var(--dimmed);font-size:.65rem">← 자연스러운 문장 = 높은 확률</span>`;
+    document.getElementById('fResult').classList.add('show');
+    document.getElementById('gc').style.display='none';
+    setStep(STEPS,'✅ 전체 생성 완료!');
+    document.getElementById('mainBtn').textContent='↺ 다시 시작';
+  }
+  document.getElementById('mainBtn').disabled=false;
+}
+
+function resetMain(){
+  curIdx=-1;cumProb=1;buildStepBar();buildGenDisplay();buildFormula();
+  setStep(-1,'▶ 시작 버튼을 눌러주세요');
+  document.getElementById('diceCtx').innerHTML='문맥이 여기 표시됩니다';
+  document.getElementById('diceBars').innerHTML='';document.getElementById('diceEtc').textContent='';
+  document.getElementById('diceSelected').className='dice-selected';document.getElementById('diceSelected').innerHTML='';
+  document.getElementById('fResult').className='f-result';document.getElementById('fResult').innerHTML='';
+  document.getElementById('mainBtn').textContent='▶ 다음 토큰 생성';document.getElementById('mainBtn').disabled=false;
+  document.getElementById('gc').style.display='';
+  pieCtx.clearRect(0,0,180,180);
+}
+
+// Insights
+const insightAnswers=["챙겼다","강화했다","크게 향상되었다","회복된다"];
+function revealInsight(idx){
+  document.getElementById(`ib-${idx}`).textContent=insightAnswers[idx];
+  document.getElementById(`ib-${idx}`).classList.add('revealed');
+  document.getElementById(`ic-${idx}`).classList.add('lit');
+  document.getElementById(`ic-${idx}`).querySelectorAll('.depth-seg').forEach(s=>{if(s.style.background!=='var(--bg3)')s.classList.add('lit')});
+}
+async function revealAll(){for(let i=0;i<4;i++){await delay(400);revealInsight(i)}}
+
+resetMain();
+</script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CEO AI 마스터 클래스</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-main: #0B1120;     /* 기존 대시보드 배경색과 통일 */
+    --bg-sidebar: #141E33;  /* 메뉴바 배경색 */
+    --bg-hover: #1C2A47;    /* 마우스 오버 색상 */
+    --primary: #3B82F6;     /* 강조 색상 (파랑) */
+    --text-main: #F1F5F9;   /* 기본 글자색 */
+    --text-muted: #94A3B8;  /* 비활성 글자색 */
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg-main);
+    color: var(--text-main);
+    display: flex;
+    height: 100vh; /* 화면 전체 꽉 차게 설정 */
+    overflow: hidden; /* 마스터 대시보드 자체는 스크롤 없앰 */
+  }
+
+  /* 좌측 네비게이션 메뉴 바 */
+  .sidebar {
+    width: 340px; /* 메뉴바를 넓게 잡아 클릭하기 쉽게 구성 */
+    background: var(--bg-sidebar);
+    border-right: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    flex-direction: column;
+    padding: 2.5rem 1.5rem;
+    z-index: 10;
+    box-shadow: 4px 0 15px rgba(0,0,0,0.3);
+  }
+
+  /* 상단 타이틀 영역 */
+  .header { margin-bottom: 2.5rem; text-align: center; }
+  .header h1 {
+    font-size: 2rem; /* 제목 크기 확대 */
+    font-weight: 900;
+    color: white;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+  }
+  .header p {
+    color: var(--primary);
+    font-size: 1.2rem;
+    font-weight: 700;
+  }
+
+  /* 메뉴 버튼 리스트 */
+  .nav-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  /* 각 챕터 버튼 디자인 (글자 크기를 크게, 클릭 영역을 넓게) */
+  .nav-btn {
+    background: transparent;
+    color: var(--text-muted);
+    border: none;
+    padding: 1.2rem 1.2rem;
+    font-size: 1.3rem; /* 글자 크기 대폭 확대 (CEO 맞춤형) */
+    font-weight: 500;
+    font-family: inherit;
+    text-align: left;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .nav-btn:hover {
+    background: var(--bg-hover);
+    color: white;
+  }
+
+  /* 현재 선택된 챕터 강조 */
+  .nav-btn.active {
+    background: var(--primary);
+    color: white;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+  }
+
+  /* 챕터 번호 디자인 */
+  .nav-btn .step {
+    font-size: 1.1rem;
+    font-weight: 900;
+    background: rgba(255,255,255,0.1);
+    padding: 6px 12px;
+    border-radius: 8px;
+  }
+  .nav-btn.active .step {
+    background: rgba(0,0,0,0.2);
+  }
+
+  /* 실제 컨텐츠가 보여지는 우측 화면 영역 */
+  .content-area {
+    flex: 1;
+    position: relative;
+    background: var(--bg-main);
+  }
+
+  iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+  }
+</style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <div class="header">
+      <h1>CEO를 위한<br>AI 마스터 클래스</h1>
+      <p>핵심 개념 시각화 과정</p>
+    </div>
+
+    <div class="nav-list">
+      <button class="nav-btn active" onclick="changeChapter('ch1_ai_types_dashboard.html', this)">
+        <span class="step">CH 1</span> AI의 두 갈래
+      </button>
+      
+      <button class="nav-btn" onclick="changeChapter('ch2_probability_dashboard.html', this)">
+        <span class="step">CH 2</span> 확률의 세계
+      </button>
+
+      <button class="nav-btn" onclick="changeChapter('ch3_llm_pipeline_dashboard.html', this)">
+        <span class="step">CH 3</span> LLM 파이프라인
+      </button>
+
+      <button class="nav-btn" onclick="changeChapter('ch4_gpu_dashboard.html', this)">
+        <span class="step">CH 4</span> GPU 인프라
+      </button>
+
+      <button class="nav-btn" onclick="changeChapter('ch5_training_dashboard.html', this)">
+        <span class="step">CH 5</span> AI 학습 과정
+      </button>
+
+      <button class="nav-btn" onclick="changeChapter('ch6_agent_dashboard.html', this)">
+        <span class="step">CH 6</span> 에이전트 아키텍처
+      </button>
+    </div>
+  </div>
+
+  <div class="content-area">
+    <iframe id="mainFrame" src="ch1_ai_types_dashboard.html" title="대시보드 화면"></iframe>
+  </div>
+
+  <script>
+    /**
+     * 챕터 변경 스크립트
+     * @param {string} url - 불러올 HTML 파일 이름
+     * @param {HTMLElement} btn - 클릭된 버튼 요소
+     */
+    function changeChapter(url, btn) {
+      // 1. Iframe의 주소를 클릭한 챕터로 변경
+      document.getElementById('mainFrame').src = url;
+
+      // 2. 모든 버튼의 활성화(active) 상태 해제
+      const buttons = document.querySelectorAll('.nav-btn');
+      buttons.forEach(b => b.classList.remove('active'));
+
+      // 3. 클릭한 버튼만 활성화(파란색 배경) 처리
+      btn.classList.add('active');
+    }
+  </script>
+</body>
+</html>

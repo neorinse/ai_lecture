@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH1. AI의 두 갈래</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ========================================= */
+  /* 🌟 사장님 맞춤형 UI/글꼴 업그레이드 코드 🌟 */
+  /* ========================================= */
+  
+  /* 1. 전체 글자 크기 및 화면 1.3배 확대 (모든 비율이 맞춰서 커집니다) */
+  html { font-size: 21px !important; }
+
+  /* 2. 각 영역(박스)을 더 입체적이고 고급스럽게 표현 (입체 그림자 & 테두리) */
+  .section, .panel, .illust, .card, .sim-panel {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 16px !important;
+  }
+
+  /* 3. 제목에 은은한 빛 효과를 주어 가독성 및 세련미 향상 */
+  .hdr h1 {
+    text-shadow: 0 4px 20px rgba(255, 255, 255, 0.15) !important;
+  }
+
+  /* 4. 버튼이나 탭에 마우스를 올렸을 때 살짝 떠오르는 부드러운 애니메이션 */
+  button, .tab {
+    transition: all 0.2s ease-in-out !important;
+  }
+  button:not(:disabled):hover, .tab:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.2);
+  }
+  /* ========================================= */
+:root{--bg:#0B1120;--bg2:#141E33;--bg3:#1C2A47;--blue:#3B82F6;--cyan:#06B6D4;--green:#10B981;--orange:#F59E0B;--pink:#EC4899;--purple:#8B5CF6;--red:#EF4444;--white:#F1F5F9;--muted:#94A3B8;--dimmed:#64748B;--font:'Noto Sans KR',sans-serif;--mono:'JetBrains Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}body{background:var(--bg);color:var(--white);font-family:var(--font)}.wrap{max-width:1100px;margin:0 auto;padding:1.25rem}
+.hdr{text-align:center;margin-bottom:1.25rem}.hdr-tag{font-family:var(--mono);font-size:.65rem;color:var(--blue);letter-spacing:4px;text-transform:uppercase;margin-bottom:.3rem}.hdr h1{font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,var(--white),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.2rem}.hdr p{color:var(--muted);font-size:.85rem}
+.section{background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:1.5rem;margin-bottom:1rem;position:relative;overflow:hidden}
+.dual-cards{display:grid;grid-template-columns:1fr 50px 1fr;gap:0;align-items:stretch;margin-bottom:.75rem}
+.vs{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:1.1rem;font-weight:900;color:var(--dimmed)}
+.card{background:var(--bg3);border-radius:12px;padding:1.1rem;border-top:3px solid var(--dimmed)}
+.card-icon{font-size:2.2rem;margin-bottom:.4rem}.card-title{font-size:1.15rem;font-weight:900;margin-bottom:.1rem}.card-sub{font-size:.7rem;font-weight:600;margin-bottom:.5rem}.card-desc{font-size:.78rem;color:var(--muted);line-height:1.6;margin-bottom:.5rem}
+.card-ex{background:rgba(0,0,0,.2);border-radius:6px;padding:.45rem .55rem;font-size:.7rem;color:var(--dimmed);line-height:1.5}.card-ex b{color:var(--white)}
+.sim-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.sim-panel{background:var(--bg3);border-radius:12px;padding:1rem;border-top:3px solid var(--dimmed)}
+.sim-title{font-size:.9rem;font-weight:900;margin-bottom:.1rem}.sim-sub{font-size:.65rem;color:var(--dimmed);margin-bottom:.5rem}
+.canvas-wrap{position:relative;width:100%;aspect-ratio:1.3;background:var(--bg2);border-radius:8px;overflow:hidden;margin-bottom:.4rem}
+canvas{width:100%;height:100%;display:block}
+.canvas-legend{display:flex;gap:.6rem;font-size:.6rem;color:var(--dimmed);flex-wrap:wrap;margin-bottom:.25rem}
+.legend-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:3px;vertical-align:middle}
+.step-text{font-family:var(--mono);font-size:.65rem;color:var(--orange);min-height:1.3rem;margin-bottom:.3rem;text-align:center}
+.token-seq{background:var(--bg2);border-radius:8px;padding:.5rem .6rem;min-height:38px;font-size:.8rem;line-height:1.8;margin-bottom:.3rem}
+.tk{display:inline-block;padding:.15rem .35rem;margin:.1rem;border-radius:4px;font-weight:600;opacity:0;transform:translateY(4px);transition:all .3s}.tk.show{opacity:1;transform:translateY(0)}
+.tk-new{background:rgba(6,182,212,.15);color:var(--cyan);border:1px solid rgba(6,182,212,.25)}
+.tk-done{background:rgba(255,255,255,.04);color:var(--white);border:1px solid rgba(255,255,255,.06)}
+.gen-cursor{display:inline-block;width:2px;height:.9rem;background:var(--cyan);animation:blink 1s infinite;vertical-align:text-bottom;margin-left:1px}
+@keyframes blink{0%,50%{opacity:1}51%,100%{opacity:0}}
+.ctrl{display:flex;justify-content:center;gap:.5rem;margin:.4rem 0}
+.btn{background:var(--bg2);border:1px solid rgba(255,255,255,.1);color:var(--white);padding:.4rem 1rem;border-radius:7px;font-family:var(--font);font-size:.7rem;font-weight:600;cursor:pointer;transition:all .3s}
+.btn:hover{border-color:rgba(255,255,255,.25);transform:translateY(-1px)}.btn:disabled{opacity:.3;cursor:not-allowed;transform:none}
+.btn-disc{background:linear-gradient(135deg,var(--orange),var(--red));border:none;color:var(--white)}
+.btn-gen{background:linear-gradient(135deg,var(--cyan),var(--blue));border:none;color:var(--white)}
+.explain{font-size:.7rem;color:var(--dimmed);line-height:1.6;padding:.5rem;background:rgba(0,0,0,.2);border-radius:7px;border-left:3px solid var(--dimmed);margin-top:.4rem}.explain .hl{color:var(--white);font-weight:700}
+.footer{text-align:center;padding:.75rem 0;color:var(--dimmed);font-size:.55rem;border-top:1px solid rgba(255,255,255,.04);margin-top:.5rem}
+@media(max-width:800px){.dual-cards,.sim-row{grid-template-columns:1fr}.vs{padding:.3rem;transform:rotate(90deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr"><div class="hdr-tag">Chapter 01</div><h1>AI의 두 갈래 — 판별형 vs 생성형</h1><p>같은 데이터 분포를 학습하지만, 목적과 방식이 근본적으로 다릅니다</p></div>
+  <div class="section">
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--orange),var(--blue))"></div>
+    <div class="dual-cards">
+      <div class="card" style="border-top-color:var(--orange)"><div class="card-icon">🔍</div><div class="card-title" style="color:var(--orange)">판별형 AI</div><div class="card-sub" style="color:var(--orange)">골라주는 AI — 경계를 학습</div><div class="card-desc">데이터 분포 사이의 <b>경계(boundary)</b>를 학습합니다. 새 데이터가 들어오면 어느 쪽에 속하는지 판단.</div><div class="card-ex"><b>통신사 예시:</b> 스팸 필터 · 이탈 예측 · 이상 탐지<br><b>비유:</b> 시험 감독관 — 맞다/틀리다만 판단</div></div>
+      <div class="vs">VS</div>
+      <div class="card" style="border-top-color:var(--blue)"><div class="card-icon">✨</div><div class="card-title" style="color:var(--blue)">생성형 AI</div><div class="card-sub" style="color:var(--blue)">만들어내는 AI — 확률분포를 학습</div><div class="card-desc">데이터의 <b>확률분포 자체</b>를 학습합니다. 그 분포에서 샘플링(주사위)하여 새로운 출력을 생성.</div><div class="card-ex"><b>대표 서비스:</b> ChatGPT · DALL-E · Midjourney<br><b>비유:</b> 수천 권 읽은 소설가 — 새로운 글을 창작</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--orange),var(--blue))"></div>
+    <div style="font-size:1rem;font-weight:900;margin-bottom:.15rem">벡터 공간에서 보는 차이</div>
+    <div style="font-size:.7rem;color:var(--muted);margin-bottom:.75rem">각 점은 하나의 문장(문자 메시지)을 벡터로 변환한 것입니다</div>
+    <div class="sim-row">
+      <!-- DISCRIMINATIVE -->
+      <div class="sim-panel" style="border-top-color:var(--orange)">
+        <div class="sim-title" style="color:var(--orange)">🔍 판별형: 경계를 학습</div>
+        <div class="sim-sub">문장들을 벡터 공간에 배치 → 경계선으로 분류</div>
+        <div class="canvas-wrap"><canvas id="cvD" width="500" height="385"></canvas></div>
+        <div class="canvas-legend"><span><span class="legend-dot" style="background:var(--red)"></span>스팸 문장</span><span><span class="legend-dot" style="background:var(--green)"></span>정상 문장</span><span><span class="legend-dot" style="background:var(--orange)"></span>경계선</span></div>
+        <div class="step-text" id="dStep">▶ 버튼을 눌러 시작</div>
+        <div class="ctrl"><button class="btn btn-disc" id="dBtn" onclick="runDisc()">▶ 판별 시뮬레이션</button></div>
+        <div class="explain" style="border-left-color:var(--orange)">각 점 = 하나의 문자 메시지를 벡터로 변환한 것. AI는 스팸과 정상 사이에 <span class="hl">경계선을 학습</span>하고, 새 문장이 어느 쪽인지 판단.</div>
+      </div>
+
+      <!-- GENERATIVE -->
+      <div class="sim-panel" style="border-top-color:var(--blue)">
+        <div class="sim-title" style="color:var(--blue)">✨ 생성형: 확률분포를 학습</div>
+        <div class="sim-sub">문장들의 분포를 학습 → 토큰마다 분포에서 샘플링</div>
+        <div class="canvas-wrap"><canvas id="cvG" width="500" height="385"></canvas></div>
+        <div class="canvas-legend"><span><span class="legend-dot" style="background:rgba(59,130,246,.4)"></span>학습 문장</span><span><span class="legend-dot" style="background:var(--cyan)"></span>확률 등고선</span><span><span class="legend-dot" style="background:var(--pink)"></span>생성 샘플</span></div>
+        <div class="step-text" id="gStep">▶ 먼저 분포 학습, 그 다음 토큰 생성</div>
+        <div class="ctrl">
+          <button class="btn btn-gen" id="gBtn1" onclick="runGenLearn()">▶ ① 분포 학습</button>
+          <button class="btn btn-gen" id="gBtn2" onclick="runTokenGen()" disabled>▶ ② 토큰 생성</button>
+        </div>
+        <div style="margin-top:.4rem;font-size:.75rem;font-weight:700;color:var(--cyan);margin-bottom:.2rem">🔤 다음 토큰 이어붙이기</div>
+        <div class="token-seq" id="tokSeq">입력: "서울의 인구수는?"<span class="gen-cursor"></span></div>
+        <div class="explain" style="border-left-color:var(--blue)">매 토큰마다 <span class="hl">확률분포에서 샘플링</span> = 벡터 공간에서 점 하나 선택. 이 점이 토큰으로 변환되어 이어붙여집니다.</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">CEO AI Intelligence · Chapter 01 · 2026</div>
+</div>
+
+<script>
+function delay(ms){return new Promise(r=>setTimeout(r,ms))}
+const W=500,H=385;
+
+// ===== DATA WITH SENTENCE LABELS =====
+const spamSentences=["[긴급]당첨!클릭","무료상품권 지급","대출 즉시승인","100만원 입금완료","보험료 환급안내","카드 정지됨 확인","택배 주소확인 링크","미수령 포인트 환급","모바일 상품권 도착","계좌 이상거래 확인","대환대출 특별금리","무료 체험 신청","포인트 소멸예정","긴급 본인확인","가입축하 경품"];
+const normalSentences=["내일 회의 10시","저녁 뭐 먹을까","보고서 확인 부탁","주말에 시간 돼?","프로젝트 일정 공유","출장 일정 변경","회의록 첨부합니다","내일 오전 미팅","견적서 보내드려요","일정 조율 가능?","자료 검토 완료","점심 같이 할까요","휴가 신청했습니다","생일 축하해요!","팀 회식 장소 투표"];
+const genSentences=["대한민국 수도 서울","서울 인구 970만","한국 경제 성장","통신 기술 발전","5G 투자 확대","AI 시장 성장","데이터 분석 활용","클라우드 서비스","디지털 전환 가속","반도체 수출 증가","모바일 결제 확산","자율주행 연구","스마트팩토리 도입","에너지 효율 개선","메타버스 플랫폼","네트워크 최적화","고객 경험 혁신","빅데이터 분석","IoT 기기 연결","로봇 프로세스"];
+
+// ===== DISCRIMINATIVE =====
+const cvD=document.getElementById('cvD'),ctxD=cvD.getContext('2d');
+const spam=[],normal=[];
+for(let i=0;i<15;i++){
+  spam.push({x:55+Math.random()*155,y:35+Math.random()*135,label:spamSentences[i]});
+  normal.push({x:260+Math.random()*180,y:200+Math.random()*145,label:normalSentences[i]});
+}
+
+function drawDBase(){
+  ctxD.clearRect(0,0,W,H);ctxD.fillStyle='#0B1120';ctxD.fillRect(0,0,W,H);
+  ctxD.strokeStyle='rgba(255,255,255,.03)';ctxD.lineWidth=1;
+  for(let x=0;x<W;x+=50){ctxD.beginPath();ctxD.moveTo(x,0);ctxD.lineTo(x,H);ctxD.stroke()}
+  for(let y=0;y<H;y+=50){ctxD.beginPath();ctxD.moveTo(0,y);ctxD.lineTo(W,y);ctxD.stroke()}
+  ctxD.fillStyle='#64748B';ctxD.font='9px JetBrains Mono';
+  ctxD.fillText('의심 키워드 수 →',360,H-6);
+  ctxD.save();ctxD.translate(10,130);ctxD.rotate(-Math.PI/2);ctxD.fillText('링크/긴급 표현 ↑',0,0);ctxD.restore();
+}
+
+function drawDPt(p,color,showLabel){
+  ctxD.beginPath();ctxD.arc(p.x,p.y,4,0,Math.PI*2);ctxD.fillStyle=color;ctxD.fill();
+  if(showLabel){
+    ctxD.fillStyle=color.replace(')',',0.6)').replace('rgb','rgba');
+    ctxD.font='7px Noto Sans KR';
+    ctxD.fillText(p.label,p.x+6,p.y+2);
+  }
+}
+
+function drawBoundary(progress){
+  const fx1=20,fy1=225,fx2=480,fy2=115;
+  const ly1=60+(fy1-60)*progress, ly2=H-(H-fy2)*progress;
+  if(progress>=1){
+    ctxD.globalAlpha=.05;
+    ctxD.fillStyle='#EF4444';ctxD.beginPath();ctxD.moveTo(0,0);ctxD.lineTo(fx1,fy1);ctxD.lineTo(fx2,fy2);ctxD.lineTo(W,0);ctxD.lineTo(0,0);ctxD.fill();
+    ctxD.fillStyle='#10B981';ctxD.beginPath();ctxD.moveTo(0,H);ctxD.lineTo(fx1,fy1);ctxD.lineTo(fx2,fy2);ctxD.lineTo(W,H);ctxD.lineTo(0,H);ctxD.fill();
+    ctxD.globalAlpha=1;
+    ctxD.fillStyle='rgba(239,68,68,.3)';ctxD.font='bold 10px Noto Sans KR';ctxD.fillText('스팸 영역',30,30);
+    ctxD.fillStyle='rgba(16,185,129,.3)';ctxD.fillText('정상 영역',390,H-15);
+  }
+  ctxD.beginPath();ctxD.moveTo(fx1,ly1);ctxD.lineTo(fx2,ly2);
+  ctxD.strokeStyle='#F59E0B';ctxD.lineWidth=2.5;ctxD.setLineDash([6,4]);ctxD.stroke();ctxD.setLineDash([]);
+}
+
+function redrawD(boundaryProg,showLabels){
+  drawDBase();
+  spam.forEach(p=>drawDPt(p,'#EF4444',showLabels));
+  normal.forEach(p=>drawDPt(p,'#10B981',showLabels));
+  if(boundaryProg>0)drawBoundary(boundaryProg);
+}
+
+async function runDisc(){
+  document.getElementById('dBtn').disabled=true;
+  document.getElementById('dStep').textContent='① 학습 데이터(문장)를 벡터 공간에 배치';
+  drawDBase();
+  for(let i=0;i<15;i++){
+    drawDPt(spam[i],'#EF4444',true);
+    drawDPt(normal[i],'#10B981',true);
+    await delay(60);
+  }
+  await delay(600);
+
+  document.getElementById('dStep').textContent='② 두 그룹 사이에 경계(boundary) 학습 중...';
+  for(let p=0;p<=1;p+=.04){redrawD(p,true);await delay(35)}
+  await delay(500);
+
+  document.getElementById('dStep').textContent='③ 새 문장 입력 → 어느 쪽?';
+  const np={x:130,y:95,label:'"[긴급]미수령 포인트"'};
+  for(let r=16;r>0;r-=2){
+    redrawD(1,true);
+    ctxD.beginPath();ctxD.arc(np.x,np.y,r+4,0,Math.PI*2);ctxD.strokeStyle='rgba(255,255,255,.7)';ctxD.lineWidth=2;ctxD.stroke();
+    ctxD.beginPath();ctxD.arc(np.x,np.y,5,0,Math.PI*2);ctxD.fillStyle='#FFFFFF';ctxD.fill();
+    await delay(30);
+  }
+  await delay(200);
+  ctxD.fillStyle='#EF4444';ctxD.font='bold 13px Noto Sans KR';ctxD.fillText('→ 스팸!',np.x+12,np.y+4);
+  ctxD.fillStyle='rgba(255,255,255,.4)';ctxD.font='9px Noto Sans KR';ctxD.fillText(np.label,np.x+12,np.y+20);
+  document.getElementById('dStep').textContent='✅ 경계선 위쪽(스팸 영역) → "스팸" 판정';
+  document.getElementById('dBtn').disabled=false;
+}
+
+// ===== GENERATIVE =====
+const cvG=document.getElementById('cvG'),ctxG=cvG.getContext('2d');
+
+function gauss(cx,cy,sx,sy,n){
+  const pts=[];for(let i=0;i<n;i++){let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();
+  const z0=Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);const z1=Math.sqrt(-2*Math.log(u))*Math.sin(2*Math.PI*v);
+  pts.push({x:cx+z0*sx,y:cy+z1*sy})}return pts;
+}
+const clu1pts=gauss(190,165,55,45,14);
+const clu2pts=gauss(355,260,35,28,6);
+// Assign sentence labels
+clu1pts.forEach((p,i)=>p.label=genSentences[i]||'');
+clu2pts.forEach((p,i)=>p.label=genSentences[14+i]||'');
+const allGenPts=[...clu1pts,...clu2pts];
+let genLearned=false;
+const sampledPts=[];
+
+function drawGBase(){
+  ctxG.clearRect(0,0,W,H);ctxG.fillStyle='#0B1120';ctxG.fillRect(0,0,W,H);
+  ctxG.strokeStyle='rgba(255,255,255,.03)';ctxG.lineWidth=1;
+  for(let x=0;x<W;x+=50){ctxG.beginPath();ctxG.moveTo(x,0);ctxG.lineTo(x,H);ctxG.stroke()}
+  for(let y=0;y<H;y+=50){ctxG.beginPath();ctxG.moveTo(0,y);ctxG.lineTo(W,y);ctxG.stroke()}
+}
+
+function drawGPt(p,color,showLabel){
+  ctxG.beginPath();ctxG.arc(p.x,p.y,3,0,Math.PI*2);ctxG.fillStyle=color;ctxG.fill();
+  if(showLabel&&p.label){
+    ctxG.fillStyle='rgba(59,130,246,.35)';ctxG.font='7px Noto Sans KR';
+    ctxG.fillText(p.label,p.x+5,p.y+2);
+  }
+}
+
+function drawContours(alpha){
+  [[190,165,110,90],[190,165,70,55],[190,165,35,25],
+   [355,260,70,56],[355,260,45,35],[355,260,22,15]].forEach(([cx,cy,rx,ry],i)=>{
+    const a=alpha*([.06,.12,.2,.06,.12,.2][i]);
+    const col=i<3?'59,130,246':'139,92,246';
+    ctxG.beginPath();ctxG.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);
+    ctxG.strokeStyle=`rgba(${col},${a*2.5})`;ctxG.lineWidth=1.5;ctxG.stroke();
+    ctxG.fillStyle=`rgba(${col},${a})`;ctxG.fill();
+  });
+}
+
+function drawSampled(){
+  sampledPts.forEach(p=>{
+    ctxG.beginPath();ctxG.arc(p.x,p.y,5,0,Math.PI*2);ctxG.fillStyle='#EC4899';ctxG.fill();
+    ctxG.strokeStyle='rgba(236,72,153,.3)';ctxG.lineWidth=1;ctxG.stroke();
+    if(p.label){ctxG.fillStyle='#EC4899';ctxG.font='bold 9px JetBrains Mono';ctxG.fillText('"'+p.label+'"',p.x+8,p.y-3)}
+  });
+}
+
+function redrawG(){
+  drawGBase();allGenPts.forEach(p=>drawGPt(p,'rgba(59,130,246,.3)',true));drawContours(1);drawSampled();
+}
+
+async function runGenLearn(){
+  document.getElementById('gBtn1').disabled=true;
+  genLearned=false;sampledPts.length=0;tokIdx=0;
+  document.getElementById('tokSeq').innerHTML='입력: "서울의 인구수는?"<span class="gen-cursor"></span>';
+  document.getElementById('gBtn2').textContent='▶ ② 토큰 생성';
+
+  document.getElementById('gStep').textContent='① 학습 데이터(문장)를 벡터 공간에 배치';
+  drawGBase();
+  for(let i=0;i<allGenPts.length;i++){
+    drawGPt(allGenPts[i],'rgba(59,130,246,.3)',true);
+    await delay(50);
+  }
+  await delay(500);
+
+  document.getElementById('gStep').textContent='② 확률분포(등고선) 학습 중...';
+  for(let a=0;a<=1;a+=.04){
+    drawGBase();allGenPts.forEach(p=>drawGPt(p,'rgba(59,130,246,.3)',true));drawContours(a);
+    await delay(35);
+  }
+  await delay(300);
+  genLearned=true;
+  document.getElementById('gStep').textContent='✅ 분포 학습 완료! → "② 토큰 생성"을 눌러보세요';
+  document.getElementById('gBtn1').disabled=false;
+  document.getElementById('gBtn2').disabled=false;
+}
+
+// ===== TOKEN GEN =====
+const genTokens=[
+  {text:'약',prob:'62%',cx:190,cy:165,sx:55,sy:45},
+  {text:' 9',prob:'58%',cx:190,cy:165,sx:55,sy:45},
+  {text:'70만',prob:'45%',cx:355,cy:260,sx:35,sy:28},
+  {text:' 명',prob:'72%',cx:190,cy:165,sx:55,sy:45},
+  {text:'입니다',prob:'68%',cx:355,cy:260,sx:35,sy:28},
+  {text:'.',prob:'81%',cx:190,cy:165,sx:55,sy:45},
+];
+let tokIdx=0;
+
+async function runTokenGen(){
+  if(!genLearned){document.getElementById('gStep').textContent='⚠️ 먼저 "① 분포 학습"을 실행하세요';return}
+  if(tokIdx>=genTokens.length){
+    tokIdx=0;sampledPts.length=0;
+    document.getElementById('tokSeq').innerHTML='입력: "서울의 인구수는?"<span class="gen-cursor"></span>';
+    redrawG();
+    document.getElementById('gStep').textContent='✅ 분포 학습 완료! → "② 토큰 생성"을 눌러보세요';
+    document.getElementById('gBtn2').textContent='▶ ② 토큰 생성';return;
+  }
+  document.getElementById('gBtn2').disabled=true;
+  const t=genTokens[tokIdx];
+  document.getElementById('gStep').textContent=`🎲 "${t.text.trim()}" 샘플링 중... (확률 ${t.prob})`;
+
+  let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();
+  const z0=Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+  const z1=Math.sqrt(-2*Math.log(u))*Math.sin(2*Math.PI*v);
+  const sp={x:t.cx+z0*t.sx*.5,y:t.cy+z1*t.sy*.5,label:t.text.trim()};
+
+  for(let r=18;r>0;r-=2){
+    redrawG();
+    ctxG.beginPath();ctxG.arc(sp.x,sp.y,r+4,0,Math.PI*2);
+    ctxG.strokeStyle=`rgba(236,72,153,${r/18*.6})`;ctxG.lineWidth=2;ctxG.stroke();
+    await delay(25);
+  }
+  sampledPts.push(sp);redrawG();
+
+  const seq=document.getElementById('tokSeq');
+  seq.innerHTML=seq.innerHTML.replace(/<span class="gen-cursor"><\/span>/g,'');
+  const span=document.createElement('span');
+  span.className='tk tk-new';
+  span.innerHTML=`${t.text} <span style="font-size:.5rem;color:var(--dimmed)">(${t.prob})</span>`;
+  seq.appendChild(span);await delay(50);span.classList.add('show');
+  await delay(300);span.className='tk tk-done show';
+  seq.innerHTML+='<span class="gen-cursor"></span>';
+
+  tokIdx++;
+  document.getElementById('gStep').textContent=tokIdx<genTokens.length?
+    `✅ "${t.text.trim()}" 생성 (${tokIdx}/${genTokens.length}) → 다음 토큰!`:
+    '✅ 전체 생성 완료! "약 970만 명입니다."';
+  if(tokIdx>=genTokens.length){
+    seq.innerHTML=seq.innerHTML.replace(/<span class="gen-cursor"><\/span>/g,'');
+    seq.innerHTML+=' <span style="font-family:var(--mono);font-size:.6rem;color:var(--green)">✅ [종료]</span>';
+    document.getElementById('gBtn2').textContent='↺ 리셋';
+  }
+  document.getElementById('gBtn2').disabled=false;
+}
+
+drawDBase();drawGBase();
+</script>
+</body>
+</html>
