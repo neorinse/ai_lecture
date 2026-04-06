@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH7. AI 시장 지형도</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F8FAFC;--bg2:#F1F5F9;--bg3:#E2E8F0;--blue:#3B82F6;--cyan:#06B6D4;--green:#10B981;--orange:#F59E0B;--pink:#EC4899;--purple:#8B5CF6;--red:#EF4444;--white:#0F172A;--muted:#475569;--dimmed:#94A3B8;--font:'Noto Sans KR',sans-serif;--mono:'JetBrains Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}body{background:var(--bg);color:var(--white);font-family:var(--font)}
+.wrap{max-width:1060px;margin:0 auto;padding:1.25rem}
+.hdr{text-align:center;margin-bottom:1.25rem}.hdr-tag{font-family:var(--mono);font-size:.65rem;color:var(--orange);letter-spacing:4px;text-transform:uppercase;margin-bottom:.3rem}.hdr h1{font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,var(--white),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.2rem}.hdr p{color:var(--muted);font-size:.85rem}
+.tabs{display:flex;gap:3px;margin-bottom:1rem;background:var(--bg2);border-radius:10px;padding:3px}.tab{flex:1;padding:.45rem;text-align:center;border-radius:7px;font-size:.62rem;font-weight:700;cursor:pointer;transition:all .3s;color:var(--dimmed);border:none;background:transparent;font-family:var(--font)}.tab.active{color:#fff}
+.part{display:none}.part.show{display:block}
+.section{background:var(--bg2);border:1px solid rgba(0,0,0,.06);border-radius:14px;padding:1.5rem;margin-bottom:1rem;position:relative;overflow:hidden}
+.s-title{font-size:1rem;font-weight:900;margin-bottom:.1rem}.s-sub{font-size:.75rem;color:var(--muted);margin-bottom:.75rem}
+
+/* Pyramid */
+.pyramid{display:flex;flex-direction:column;align-items:center;gap:.4rem;margin-bottom:.75rem}
+.py-layer{border-radius:10px;padding:.6rem 1rem;text-align:center;transition:all .3s;cursor:pointer;border:2px solid transparent}
+.py-layer:hover{transform:translateY(-2px)}
+.py-layer.lit{border-color:rgba(0,0,0,.15)}
+.py-ico{font-size:1.2rem;margin-bottom:.15rem}.py-name{font-size:.85rem;font-weight:900;margin-bottom:.1rem}.py-desc{font-size:.65rem;line-height:1.4}.py-examples{font-size:.6rem;margin-top:.2rem;font-family:var(--mono)}
+
+/* Model comparison cards */
+.model-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:.5rem}
+.m-card{background:var(--bg3);border-radius:10px;padding:.75rem;border-top:3px solid var(--dimmed);transition:all .3s;cursor:pointer}
+.m-card:hover{transform:translateY(-2px)}
+.m-card .m-logo{font-size:1.4rem;margin-bottom:.2rem}.m-card .m-name{font-size:.85rem;font-weight:900;margin-bottom:.05rem}
+.m-card .m-maker{font-size:.6rem;color:var(--dimmed);margin-bottom:.3rem}
+.m-card .m-row{display:flex;justify-content:space-between;font-size:.6rem;padding:.12rem 0;border-bottom:1px solid rgba(0,0,0,.04)}.m-card .m-row:last-child{border:none}
+.m-card .m-key{color:var(--dimmed)}.m-card .m-val{font-weight:700;font-family:var(--mono);text-align:right}
+.m-card .m-tag{display:inline-block;font-size:.5rem;padding:.08rem .2rem;border-radius:3px;font-weight:700;margin-top:.2rem}
+
+/* Open vs Closed */
+.oc-row{display:grid;grid-template-columns:1fr 60px 1fr;gap:0;align-items:stretch;margin-bottom:.5rem}
+.oc-card{background:var(--bg3);border-radius:10px;padding:1rem;border-top:3px solid var(--dimmed)}
+.oc-vs{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:900;color:var(--dimmed)}
+.oc-title{font-size:.95rem;font-weight:900;margin-bottom:.3rem}.oc-items{font-size:.72rem;color:var(--muted);line-height:1.7}
+.oc-items b{color:var(--white)}
+.oc-verdict{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.15);border-radius:8px;padding:.6rem;text-align:center;margin-top:.5rem}
+.oc-verdict .big{font-size:.85rem;font-weight:900;color:var(--green)}.oc-verdict .sm{font-size:.7rem;color:var(--muted);margin-top:.15rem}
+
+/* Cost calculator */
+.calc{background:var(--bg3);border-radius:10px;padding:1rem;margin-bottom:.5rem}
+.calc-title{font-size:.85rem;font-weight:900;margin-bottom:.5rem}
+.calc-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem;font-size:.75rem}
+.calc-label{width:120px;color:var(--muted);font-size:.7rem}
+.calc-slider{flex:1;-webkit-appearance:none;height:6px;border-radius:3px;background:var(--bg2);outline:none}
+.calc-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--blue);cursor:pointer}
+.calc-val{font-family:var(--mono);font-weight:700;width:80px;text-align:right;font-size:.75rem}
+.calc-result{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-top:.6rem}
+.cr{background:var(--bg2);border-radius:8px;padding:.5rem;text-align:center;border-top:3px solid var(--dimmed)}
+.cr .cr-name{font-size:.65rem;font-weight:700;margin-bottom:.15rem}.cr .cr-cost{font-family:var(--mono);font-size:1rem;font-weight:900}.cr .cr-sub{font-size:.5rem;color:var(--dimmed);margin-top:.1rem}
+
+/* Use cases */
+.uc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.5rem;margin-bottom:.5rem}
+.uc{background:var(--bg3);border-radius:10px;padding:.8rem;border-left:3px solid var(--dimmed);transition:all .3s}
+.uc:hover{transform:translateY(-2px)}
+.uc-ico{font-size:1.3rem;margin-bottom:.2rem}.uc-name{font-size:.85rem;font-weight:900;margin-bottom:.1rem}
+.uc-desc{font-size:.68rem;color:var(--muted);line-height:1.5;margin-bottom:.3rem}
+.uc-stat{font-family:var(--mono);font-size:.6rem;padding:.15rem .3rem;border-radius:3px;display:inline-block}
+
+.explain{font-size:.7rem;color:var(--muted);line-height:1.6;padding:.5rem;background:rgba(0,0,0,.03);border-radius:7px;border-left:3px solid var(--dimmed);margin-top:.4rem}.explain .hl{color:var(--white);font-weight:700}
+.footer{text-align:center;padding:.75rem 0;color:var(--dimmed);font-size:.55rem;border-top:1px solid rgba(0,0,0,.06);margin-top:.5rem}
+@media(max-width:750px){.model-grid{grid-template-columns:1fr}.oc-row,.uc-grid,.calc-result{grid-template-columns:1fr}.oc-vs{transform:rotate(90deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr"><div class="hdr-tag">Chapter 07</div><h1>AI 시장 지형도 — CEO가 알아야 할 판세</h1><p>기술을 넘어 비즈니스 의사결정을 위한 프레임</p></div>
+  <div class="tabs">
+    <div class="tab active" id="t1" onclick="sT(1)" style="background:linear-gradient(135deg,#F59E0B,#d97706)">시장 구조</div>
+    <div class="tab" id="t2" onclick="sT(2)">모델 비교</div>
+    <div class="tab" id="t3" onclick="sT(3)">오픈 vs 클로즈드</div>
+    <div class="tab" id="t4" onclick="sT(4)">모델 크기와 능력</div>
+
+  </div>
+
+  <!-- TAB 1: Market Structure -->
+  <div class="part show" id="p1">
+    <div class="section">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--orange),var(--pink))"></div>
+      <div class="s-title">AI 시장 3계층 — 누가 뭘 만드는가</div>
+      <div class="s-sub">"우리는 어디에 위치하고, 어디서 승부해야 하는가"</div>
+      <div class="pyramid">
+        <div class="py-layer" style="width:50%;background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.15);position:relative" onclick="this.classList.toggle('lit')">
+          <div style="position:absolute;top:4px;right:8px;font-size:.5rem;padding:.1rem .3rem;border-radius:3px;background:rgba(245,158,11,.15);color:#d97706;font-weight:700;font-family:var(--mono)">🇰🇷 우리도 여기</div>
+          <div class="py-ico">🏗️</div>
+          <div class="py-name" style="color:var(--red)">Foundation Model (기반 모델)</div>
+          <div class="py-desc" style="color:var(--muted)">수천억~수조 원 투자 · 전 세계 소수 기업 + <b style="color:var(--orange)">소버린 AI 전략 국가/기업</b></div>
+          <div class="py-examples">OpenAI · Anthropic · Google · Meta · DeepSeek · <b style="color:var(--orange)">우리 회사(소버린 AI)</b></div>
+        </div>
+        <div class="py-layer" style="width:70%;background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.15)" onclick="this.classList.toggle('lit')">
+          <div class="py-ico">☁️</div>
+          <div class="py-name" style="color:var(--blue)">Cloud Platform (플랫폼)</div>
+          <div class="py-desc" style="color:var(--muted)">기반 모델을 API로 제공 · 자체 모델 + 글로벌 모델 하이브리드 제공 가능</div>
+          <div class="py-examples">AWS Bedrock · Azure OpenAI · Google Vertex AI · <b style="color:var(--orange)">자사 AI 플랫폼</b></div>
+        </div>
+        <div class="py-layer" style="width:90%;background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.2)" onclick="this.classList.toggle('lit')">
+          <div class="py-ico">🚀</div>
+          <div class="py-name" style="color:var(--green)">Application (응용 서비스)</div>
+          <div class="py-desc" style="color:var(--muted)">자체 Foundation 위에 통신 특화 서비스 구축 · 고객 접점 가치 창출</div>
+          <div class="py-examples">AI 상담 에이전트 · 네트워크 최적화 · 개인화 마케팅 · B2B AI 서비스</div>
+        </div>
+      </div>
+      <div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.12);border-radius:8px;padding:.6rem;margin-bottom:.5rem">
+        <div style="font-size:.85rem;font-weight:900;color:var(--orange);margin-bottom:.2rem">🏴 소버린 AI(Sovereign AI) 전략이란?</div>
+        <div style="font-size:.72rem;color:var(--muted);line-height:1.6">
+          자국/자사의 <b style="color:var(--white)">데이터 주권과 기술 자립</b>을 위해 Foundation Model을 직접 보유하는 전략.<br>
+          <b style="color:var(--white)">장점:</b> 데이터가 외부로 나가지 않음 · 자국어/산업 특화 가능 · 글로벌 빅테크 종속 탈피 · B2B AI 서비스 수익화<br>
+          <b style="color:var(--white)">도전:</b> 막대한 GPU 투자 · 인재 확보 · 글로벌 모델 대비 성능 격차 관리<br>
+          <b style="color:var(--orange)">우리의 포지션: Foundation → Platform → Application 풀스택 — 통신사만의 데이터(네트워크·고객·위치)가 차별화 무기</b>
+        </div>
+      </div>
+      <div class="explain" style="border-left-color:var(--orange)">
+        우리는 소버린 AI 전략으로 <span class="hl">Foundation부터 Application까지 풀스택</span>을 구축 중. 글로벌 빅테크 모델도 활용하되, 핵심 데이터는 <span class="hl">자체 모델로 처리</span>. 핵심 질문: "자체 모델의 강점을 어디에 집중시킬 것인가?" — 통신사만의 데이터(네트워크·고객·위치)가 답.
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: Model Comparison -->
+  <div class="part" id="p2">
+    <div class="section">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--purple))"></div>
+      <div class="s-title">주요 모델 비교 — 어떤 걸 써야 하나</div>
+      <div class="s-sub">성능 · 비용 · 한국어 · 데이터 보안 기준으로 비교</div>
+      <div class="model-grid">
+        <div class="m-card" style="border-top-color:var(--green)">
+          <div class="m-logo">🟢</div>
+          <div class="m-name" style="color:var(--green)">GPT-4o / GPT-5</div>
+          <div class="m-maker">OpenAI</div>
+          <div class="m-row"><span class="m-key">강점</span><span class="m-val">범용 최강, 생태계 최대</span></div>
+          <div class="m-row"><span class="m-key">비용 (입/출)</span><span class="m-val" style="color:var(--blue)">$2.5 / $10 /M</span></div>
+          <div class="m-row"><span class="m-key">한국어</span><span class="m-val">우수</span></div>
+          <div class="m-row"><span class="m-key">컨텍스트</span><span class="m-val">128K</span></div>
+          <div class="m-row"><span class="m-key">데이터 보안</span><span class="m-val" style="color:var(--orange)">클라우드</span></div>
+          <div class="m-tag" style="background:rgba(16,185,129,.1);color:var(--green)">가장 넓은 생태계</div>
+        </div>
+        <div class="m-card" style="border-top-color:var(--purple)">
+          <div class="m-logo">🟣</div>
+          <div class="m-name" style="color:var(--purple)">Claude Opus 4.6</div>
+          <div class="m-maker">Anthropic</div>
+          <div class="m-row"><span class="m-key">강점</span><span class="m-val">긴 문서, 안전성, 코딩</span></div>
+          <div class="m-row"><span class="m-key">비용 (입/출)</span><span class="m-val" style="color:var(--blue)">$5 / $25 /M</span></div>
+          <div class="m-row"><span class="m-key">한국어</span><span class="m-val">우수</span></div>
+          <div class="m-row"><span class="m-key">컨텍스트</span><span class="m-val" style="color:var(--green)">1M (100만)</span></div>
+          <div class="m-row"><span class="m-key">데이터 보안</span><span class="m-val" style="color:var(--orange)">클라우드</span></div>
+          <div class="m-tag" style="background:rgba(139,92,246,.1);color:var(--purple)">문서 분석 최강</div>
+        </div>
+        <div class="m-card" style="border-top-color:var(--blue)">
+          <div class="m-logo">🔵</div>
+          <div class="m-name" style="color:var(--blue)">Gemini 3.1 Pro</div>
+          <div class="m-maker">Google</div>
+          <div class="m-row"><span class="m-key">강점</span><span class="m-val">구글 생태계, 멀티모달</span></div>
+          <div class="m-row"><span class="m-key">비용 (입/출)</span><span class="m-val" style="color:var(--green)">$2 / $12 /M</span></div>
+          <div class="m-row"><span class="m-key">한국어</span><span class="m-val">양호</span></div>
+          <div class="m-row"><span class="m-key">컨텍스트</span><span class="m-val" style="color:var(--green)">1M (100만)</span></div>
+          <div class="m-row"><span class="m-key">데이터 보안</span><span class="m-val" style="color:var(--orange)">클라우드</span></div>
+          <div class="m-tag" style="background:rgba(59,130,246,.1);color:var(--blue)">가격 경쟁력</div>
+        </div>
+        <div class="m-card" style="border-top-color:var(--orange)">
+          <div class="m-logo">🟠</div>
+          <div class="m-name" style="color:var(--orange)">Llama 4</div>
+          <div class="m-maker">Meta (오픈소스)</div>
+          <div class="m-row"><span class="m-key">강점</span><span class="m-val">오픈소스, 자체 운영</span></div>
+          <div class="m-row"><span class="m-key">비용</span><span class="m-val" style="color:var(--green)">무료 (GPU 비용만)</span></div>
+          <div class="m-row"><span class="m-key">한국어</span><span class="m-val" style="color:var(--orange)">보통</span></div>
+          <div class="m-row"><span class="m-key">컨텍스트</span><span class="m-val">128K~10M</span></div>
+          <div class="m-row"><span class="m-key">데이터 보안</span><span class="m-val" style="color:var(--green)">자체 서버 가능</span></div>
+          <div class="m-tag" style="background:rgba(245,158,11,.1);color:var(--orange)">데이터 통제 최강</div>
+        </div>
+        <div class="m-card" style="border-top-color:var(--red)">
+          <div class="m-logo">🔴</div>
+          <div class="m-name" style="color:var(--red)">DeepSeek-R1</div>
+          <div class="m-maker">DeepSeek (중국)</div>
+          <div class="m-row"><span class="m-key">강점</span><span class="m-val">추론 특화, GRPO</span></div>
+          <div class="m-row"><span class="m-key">비용</span><span class="m-val" style="color:var(--green)">매우 저렴 / 오픈소스</span></div>
+          <div class="m-row"><span class="m-key">한국어</span><span class="m-val" style="color:var(--orange)">보통</span></div>
+          <div class="m-row"><span class="m-key">컨텍스트</span><span class="m-val">128K</span></div>
+          <div class="m-row"><span class="m-key">데이터 보안</span><span class="m-val" style="color:var(--red)">중국 서버 주의</span></div>
+          <div class="m-tag" style="background:rgba(239,68,68,.1);color:var(--red)">수학/코드 추론 특화</div>
+        </div>
+        <div class="m-card" style="border-top-color:var(--cyan)">
+          <div class="m-logo">🇰🇷</div>
+          <div class="m-name" style="color:var(--cyan)">국내 모델</div>
+          <div class="m-maker">SKT·네이버·LG</div>
+          <div class="m-row"><span class="m-key">모델</span><span class="m-val">A.X-K1, HyperCLOVA X, EXAONE</span></div>
+          <div class="m-row"><span class="m-key">강점</span><span class="m-val" style="color:var(--green)">한국어 특화</span></div>
+          <div class="m-row"><span class="m-key">한국어</span><span class="m-val" style="color:var(--green)">최우수</span></div>
+          <div class="m-row"><span class="m-key">컨텍스트</span><span class="m-val">32K~128K</span></div>
+          <div class="m-row"><span class="m-key">데이터 보안</span><span class="m-val" style="color:var(--green)">국내 서버</span></div>
+          <div class="m-tag" style="background:rgba(6,182,212,.1);color:var(--cyan)">규제 대응 유리</div>
+        </div>
+      </div>
+      <div class="explain" style="border-left-color:var(--blue)">CEO 선택 가이드: <span class="hl">범용 업무 → GPT/Claude</span>, <span class="hl">데이터 보안 중요 → Llama(자체 서버)</span>, <span class="hl">한국어 특화 → 국내 모델</span>, <span class="hl">비용 우선 → Gemini/DeepSeek</span>. 대부분 기업은 용도별로 2~3개를 혼합 사용합니다.</div>
+    </div>
+  </div>
+
+  <!-- TAB 3: Open vs Closed -->
+  <div class="part" id="p3">
+    <div class="section">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--purple),var(--green))"></div>
+      <div class="s-title">오픈소스 vs 클로즈드 — 전략적 선택</div>
+      <div class="s-sub">"어떤 데이터를 어디서 처리할 것인가"가 핵심</div>
+      <div class="oc-row">
+        <div class="oc-card" style="border-top-color:var(--purple)">
+          <div class="oc-title" style="color:var(--purple)">🔒 클로즈드 (API)</div>
+          <div class="oc-items">
+            <b>대표:</b> GPT, Claude, Gemini<br>
+            <b style="color:var(--green)">✓ 장점:</b> 최고 성능, 빠른 도입(일주일), 인프라 불필요<br>
+            <b style="color:var(--red)">✗ 단점:</b> 데이터가 외부로 전송, 벤더 종속, 가격 변동 리스크<br>
+            <b>적합:</b> 일반 고객 응대, 마케팅, 내부 문서 요약
+          </div>
+        </div>
+        <div class="oc-vs">VS</div>
+        <div class="oc-card" style="border-top-color:var(--green)">
+          <div class="oc-title" style="color:var(--green)">🔓 오픈소스 (자체 운영)</div>
+          <div class="oc-items">
+            <b>대표:</b> Llama, DeepSeek, Mistral<br>
+            <b style="color:var(--green)">✓ 장점:</b> 데이터 완전 통제, 커스터마이징 자유, 종속 없음<br>
+            <b style="color:var(--red)">✗ 단점:</b> GPU 인프라 필요(수억~), 운영 인력, 성능 격차<br>
+            <b>적합:</b> 고객 개인정보 처리, 네트워크 데이터 분석
+          </div>
+        </div>
+      </div>
+      <div class="oc-verdict">
+        <div class="big">🎯 우리의 답: 소버린 AI + 하이브리드</div>
+        <div class="sm">핵심 데이터(고객·네트워크·위치) → <b style="color:var(--orange)">자체 Foundation Model</b><br>범용 업무(문서 요약, 번역) → 글로벌 모델 API 활용<br><b style="color:var(--green)">자체 모델로 데이터 주권 확보 + 글로벌 모델로 빠른 도입 = 최적 조합</b></div>
+      </div>
+    </div>
+  </div>
+
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+       
+
+    </div>
+  </div>
+
+  <!-- TAB 4: Scaling & Emergent -->
+  <div class="part" id="p4">
+    <div class="section">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green),var(--orange))"></div>
+      <div class="s-title">📏 모델 크기와 능력 — Scaling Law</div>
+      <div class="s-sub">모델을 키우면 "갑자기" 새로운 능력이 나타난다</div>
+
+      <!-- Size comparison -->
+      <div style="background:var(--bg3);border-radius:10px;padding:1rem;margin-bottom:.75rem">
+        <div style="font-size:.85rem;font-weight:900;margin-bottom:.5rem">🔢 파라미터 수 비교 — "모델의 뇌 크기"</div>
+        <div style="font-size:.68rem;color:var(--muted);margin-bottom:.6rem">파라미터 = 학습된 가중치 숫자. 클수록 더 많은 지식과 패턴을 저장 가능.</div>
+        <div id="sizeChart"></div>
+      </div>
+
+      <!-- Scaling Law -->
+      <div style="background:var(--bg3);border-radius:10px;padding:1rem;margin-bottom:.75rem">
+        <div style="font-size:.85rem;font-weight:900;margin-bottom:.3rem">📈 Scaling Law — "키우면 반드시 좋아진다"</div>
+        <div style="font-size:.68rem;color:var(--muted);margin-bottom:.6rem">모델 크기, 데이터 양, 연산량을 늘리면 성능이 <b style="color:var(--white)">예측 가능하게</b> 향상됨 (2020, OpenAI 발견)</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:.5rem">
+          <div style="background:var(--bg2);border-radius:8px;padding:.6rem;text-align:center;border-top:3px solid var(--blue)">
+            <div style="font-size:1.3rem;margin-bottom:.15rem">🧠</div>
+            <div style="font-size:.8rem;font-weight:900;color:var(--blue)">파라미터 ↑</div>
+            <div style="font-size:.62rem;color:var(--muted);margin-top:.15rem">모델의 뇌 크기<br>7B → 70B → 400B+</div>
+          </div>
+          <div style="background:var(--bg2);border-radius:8px;padding:.6rem;text-align:center;border-top:3px solid var(--green)">
+            <div style="font-size:1.3rem;margin-bottom:.15rem">📚</div>
+            <div style="font-size:.8rem;font-weight:900;color:var(--green)">데이터 ↑</div>
+            <div style="font-size:.62rem;color:var(--muted);margin-top:.15rem">학습 데이터 양<br>1조 → 15조 토큰</div>
+          </div>
+          <div style="background:var(--bg2);border-radius:8px;padding:.6rem;text-align:center;border-top:3px solid var(--orange)">
+            <div style="font-size:1.3rem;margin-bottom:.15rem">⚡</div>
+            <div style="font-size:.8rem;font-weight:900;color:var(--orange)">연산량 ↑</div>
+            <div style="font-size:.62rem;color:var(--muted);margin-top:.15rem">GPU × 시간<br>수천 → 수만 GPU</div>
+          </div>
+        </div>
+        <div style="text-align:center;font-size:.75rem;color:var(--muted)">↓ 세 가지를 동시에 키우면 ↓</div>
+        <div style="text-align:center;font-size:.9rem;font-weight:900;color:var(--green);margin:.3rem 0">성능이 예측 가능하게, 꾸준히 향상</div>
+        <div style="text-align:center;font-size:.65rem;color:var(--dimmed)">이것이 빅테크가 GPU에 수조 원을 투자하는 이유</div>
+      </div>
+
+      <!-- Emergent Capability -->
+      <div style="background:var(--bg3);border-radius:10px;padding:1rem;margin-bottom:.5rem">
+        <div style="font-size:.85rem;font-weight:900;color:var(--orange);margin-bottom:.3rem">💥 Emergent Capability — "갑자기 할 수 있게 된다"</div>
+        <div style="font-size:.68rem;color:var(--muted);margin-bottom:.6rem">모델을 키우면 어느 순간, 가르치지 않은 능력이 <b style="color:var(--white)">"갑자기"</b> 나타남</div>
+
+        <div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.5rem" id="emergentList">
+          <div class="em-row" style="opacity:.3;transition:all .5s" id="em0">
+            <div class="em-size" style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.12);border-radius:8px;padding:.5rem;display:flex;align-items:center;gap:.5rem">
+              <span style="font-size:1.1rem">🔵</span>
+              <div>
+                <div style="font-size:.75rem;font-weight:900;color:var(--blue)">~10B 파라미터</div>
+                <div style="font-size:.6rem;color:var(--muted)">기본 대화, 간단한 번역, 요약</div>
+              </div>
+              <div style="margin-left:auto;font-size:.55rem;color:var(--dimmed);font-family:var(--mono)">기본 능력</div>
+            </div>
+          </div>
+          <div class="em-row" style="opacity:.3;transition:all .5s" id="em1">
+            <div class="em-size" style="background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.12);border-radius:8px;padding:.5rem;display:flex;align-items:center;gap:.5rem">
+              <span style="font-size:1.1rem">🟣</span>
+              <div>
+                <div style="font-size:.75rem;font-weight:900;color:var(--purple)">~70B 파라미터</div>
+                <div style="font-size:.6rem;color:var(--muted)">💥 <b>수학 문제 풀이, 코드 작성, 논리 추론</b> 갑자기 등장!</div>
+              </div>
+              <div style="margin-left:auto;font-size:.55rem;color:var(--orange);font-family:var(--mono);font-weight:700">🔥 Emergent!</div>
+            </div>
+          </div>
+          <div class="em-row" style="opacity:.3;transition:all .5s" id="em2">
+            <div class="em-size" style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.12);border-radius:8px;padding:.5rem;display:flex;align-items:center;gap:.5rem">
+              <span style="font-size:1.1rem">🟢</span>
+              <div>
+                <div style="font-size:.75rem;font-weight:900;color:var(--green)">~200B+ 파라미터</div>
+                <div style="font-size:.6rem;color:var(--muted)">💥 <b>복잡한 추론 체인, 자기 검증, 전략 수립</b> 갑자기 등장!</div>
+              </div>
+              <div style="margin-left:auto;font-size:.55rem;color:var(--orange);font-family:var(--mono);font-weight:700">🔥 Emergent!</div>
+            </div>
+          </div>
+          <div class="em-row" style="opacity:.3;transition:all .5s" id="em3">
+            <div class="em-size" style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.12);border-radius:8px;padding:.5rem;display:flex;align-items:center;gap:.5rem">
+              <span style="font-size:1.1rem">🔶</span>
+              <div>
+                <div style="font-size:.75rem;font-weight:900;color:var(--orange)">400B+ (GPT-4급 이상)</div>
+                <div style="font-size:.6rem;color:var(--muted)">💥 <b>전문가 수준 판단, 멀티턴 에이전트, 과학 연구 보조</b></div>
+              </div>
+              <div style="margin-left:auto;font-size:.55rem;color:var(--red);font-family:var(--mono);font-weight:700">🔥🔥 Frontier</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:center;gap:.4rem;margin:.4rem 0">
+          <button class="tab" onclick="revealEmergent()" style="background:linear-gradient(135deg,var(--orange),var(--red));color:#fff;padding:.35rem .8rem;border-radius:6px;font-size:.65rem;font-weight:700;cursor:pointer;border:none;font-family:var(--font)">▶ 단계별 보기</button>
+        </div>
+
+        <div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.1);border-radius:8px;padding:.6rem;margin-top:.4rem">
+          <div style="font-size:.75rem;font-weight:900;color:var(--orange);margin-bottom:.15rem">CEO 시사점</div>
+          <div style="font-size:.68rem;color:var(--muted);line-height:1.6">
+            <b style="color:var(--white)">작은 모델(7~10B)</b>은 특정 업무에 Fine-tuning해서 경제적으로 사용.<br>
+            <b style="color:var(--white)">큰 모델(200B+)</b>은 복잡한 추론이 필요한 곳에 API로 활용.<br>
+            <b style="color:var(--orange)">소버린 AI 전략</b>: 자체 모델의 크기를 어디까지 키울 것인가 = 투자 규모의 핵심 의사결정.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="footer">CEO AI Intelligence · Chapter 07 Market Landscape · 2026</div>
+</div>
+
+<script>
+const tabBgs=["linear-gradient(135deg,#F59E0B,#d97706)","linear-gradient(135deg,#3B82F6,#8B5CF6)","linear-gradient(135deg,#8B5CF6,#10B981)","linear-gradient(135deg,#10B981,#F59E0B)"];
+function sT(n){for(let i=1;i<=4;i++){document.getElementById('t'+i).className=i===n?'tab active':'tab';document.getElementById('t'+i).style.background=i===n?tabBgs[i-1]:'';document.getElementById('p'+i).className=i===n?'part show':'part'}}
+
+// Size chart
+function buildSizeChart(){
+  const data=[
+    {name:'Llama 3.2',size:3,color:'#94A3B8',w:3},
+    {name:'Llama 3.1',size:8,color:'#94A3B8',w:6},
+    {name:'GPT-3',size:175,color:'#64748B',w:30},
+    {name:'Llama 3.1',size:405,color:'#F59E0B',w:50},
+    {name:'DeepSeek-V3',size:671,color:'#EF4444',w:65},
+    {name:'GPT-4 (추정)',size:1800,color:'#10B981',w:90},
+  ];
+  const el=document.getElementById('sizeChart');
+  let html='';
+  data.forEach(d=>{
+    html+=`<div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem">
+      <span style="font-size:.65rem;width:85px;text-align:right;color:var(--muted);font-weight:600">${d.name}</span>
+      <div style="flex:1;height:18px;background:var(--bg2);border-radius:4px;overflow:hidden">
+        <div style="width:${d.w}%;height:100%;background:${d.color};border-radius:4px;display:flex;align-items:center;padding-left:4px;font-family:var(--mono);font-size:.5rem;font-weight:700;color:#fff;min-width:40px">${d.size}B</div>
+      </div>
+    </div>`;
+  });
+  html+='<div style="font-size:.55rem;color:var(--dimmed);text-align:center;margin-top:.3rem">B = Billion (10억) 파라미터 · GPT-4는 비공개이나 1.8T(조)로 추정</div>';
+  el.innerHTML=html;
+}
+buildSizeChart();
+
+// Emergent reveal
+let emIdx=0;
+function revealEmergent(){
+  if(emIdx>=4){emIdx=0;for(let i=0;i<4;i++)document.getElementById('em'+i).style.opacity='.3';return}
+  document.getElementById('em'+emIdx).style.opacity='1';
+  emIdx++;
+}
+
+
+</script>
+</body>
+</html>

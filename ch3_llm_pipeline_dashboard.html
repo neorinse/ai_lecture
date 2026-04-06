@@ -217,7 +217,7 @@ body::after { content:''; position:fixed; inset:0; background:url("data:image/sv
 <body>
 <div class="wrap">
   <div class="hdr">
-    <div class="hdr-tag">CHAPTER 03 LLM Pipeline</div>
+    <div class="hdr-tag">LLM Pipeline Visualization</div>
     <h1>다음 단어 맞추기의 여정</h1>
     <p>"서울의 인구수는?" → AI가 한 토큰씩 답을 만들어가는 과정</p>
   </div>
@@ -531,11 +531,11 @@ async function renderEmbedding() {
       <span style="font-family:var(--mono);font-size:0.6rem;color:var(--dimmed);white-space:nowrap;margin-left:0.3rem">12,288d</span>
     `;
     area.appendChild(row);
-    await delay(1200);
+    await delay(200);
     row.classList.add('show');
   }
 
-  await delay(1300);
+  await delay(300);
   document.getElementById('exp2').style.opacity = '1';
 }
 
@@ -603,10 +603,10 @@ async function renderTransformer() {
       ).join('');
     }
 
-    await delay(160);
+    await delay(60);
   }
 
-  await delay(1300);
+  await delay(300);
   document.getElementById('exp3').style.opacity = '1';
 }
 
@@ -644,13 +644,13 @@ async function renderOutput() {
     `;
     area.appendChild(row);
     
-    await delay(1150);
-    row.classList.add('show');
     await delay(150);
+    row.classList.add('show');
+    await delay(50);
     document.getElementById(`lbar-${i}`).style.width = barW + '%';
   }
 
-  await delay(4100);
+  await delay(400);
   document.getElementById('exp4').style.opacity = '1';
 }
 
@@ -678,12 +678,12 @@ async function renderDice() {
   
   for (let i = 0; i < 15; i++) {
     dice.textContent = faces[i % faces.length];
-    await delay(180);
+    await delay(80);
   }
   dice.classList.remove('rolling');
   dice.textContent = '🎲';
 
-  await delay(1200);
+  await delay(200);
 
   const result = document.getElementById('diceResult');
   if (probs.pick === '[종료]') {
@@ -693,7 +693,7 @@ async function renderDice() {
   }
   result.classList.add('show');
 
-  await delay(1300);
+  await delay(300);
   document.getElementById('exp5').style.opacity = '1';
 }
 
