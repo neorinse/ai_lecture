@@ -6,38 +6,10 @@
 <title>CH2. 확률의 세계</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-  /* ========================================= */
-  /* 🌟 사장님 맞춤형 UI/글꼴 업그레이드 코드 🌟 */
-  /* ========================================= */
-  
-  /* 1. 전체 글자 크기 및 화면 1.3배 확대 (모든 비율이 맞춰서 커집니다) */
-  html { font-size: 18px !important; }
-
-  /* 2. 각 영역(박스)을 더 입체적이고 고급스럽게 표현 (입체 그림자 & 테두리) */
-  .section, .panel, .illust, .card, .sim-panel {
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
-    border-radius: 16px !important;
-  }
-
-  /* 3. 제목에 은은한 빛 효과를 주어 가독성 및 세련미 향상 */
-  .hdr h1 {
-    text-shadow: 0 4px 20px rgba(255, 255, 255, 0.15) !important;
-  }
-
-  /* 4. 버튼이나 탭에 마우스를 올렸을 때 살짝 떠오르는 부드러운 애니메이션 */
-  button, .tab {
-    transition: all 0.2s ease-in-out !important;
-  }
-  button:not(:disabled):hover, .tab:hover {
-    transform: translateY(-2px);
-    filter: brightness(1.2);
-  }
-  /* ========================================= */
-:root{--bg:#0B1120;--bg2:#141E33;--bg3:#1C2A47;--blue:#3B82F6;--cyan:#06B6D4;--green:#10B981;--orange:#F59E0B;--pink:#EC4899;--purple:#8B5CF6;--red:#EF4444;--white:#F1F5F9;--muted:#94A3B8;--dimmed:#64748B;--font:'Noto Sans KR',sans-serif;--mono:'JetBrains Mono',monospace}
+:root{--bg:#F8FAFC;--bg2:#F1F5F9;--bg3:#E2E8F0;--blue:#3B82F6;--cyan:#06B6D4;--green:#10B981;--orange:#F59E0B;--pink:#EC4899;--purple:#8B5CF6;--red:#EF4444;--white:#0F172A;--muted:#475569;--dimmed:#94A3B8;--font:'Noto Sans KR',sans-serif;--mono:'JetBrains Mono',monospace}
 *{margin:0;padding:0;box-sizing:border-box}body{background:var(--bg);color:var(--white);font-family:var(--font)}.wrap{max-width:1060px;margin:0 auto;padding:1.25rem}
 .hdr{text-align:center;margin-bottom:1.25rem}.hdr-tag{font-family:var(--mono);font-size:.65rem;color:var(--cyan);letter-spacing:4px;text-transform:uppercase;margin-bottom:.3rem}.hdr h1{font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,var(--white),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.2rem}.hdr p{color:var(--muted);font-size:.85rem}
-.section{background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:1.5rem;margin-bottom:1rem;position:relative;overflow:hidden}
+.section{background:var(--bg2);border:1px solid rgba(0,0,0,.06);border-radius:14px;padding:1.5rem;margin-bottom:1rem;position:relative;overflow:hidden}
 .gen-display{background:var(--bg3);border-radius:10px;padding:.8rem 1rem;margin-bottom:.6rem;min-height:48px;font-size:1.1rem;font-weight:700;line-height:1.8}
 .gen-word{display:inline;opacity:.15;transition:all .4s}.gen-word.active{opacity:1;color:var(--cyan)}.gen-word.done{opacity:1;color:var(--white)}
 .gen-cursor{display:inline-block;width:2px;height:1.1rem;background:var(--cyan);animation:blink 1s infinite;vertical-align:text-bottom;margin-left:2px}
@@ -47,7 +19,7 @@
 .formula-row{display:flex;align-items:center;gap:.15rem;flex-wrap:wrap;font-family:var(--mono);font-size:.72rem;min-height:26px}
 .f-term{padding:.12rem .3rem;border-radius:4px;transition:all .4s;opacity:.2}
 .f-term.active{opacity:1;background:rgba(6,182,212,.12);color:var(--cyan);border:1px solid rgba(6,182,212,.25)}
-.f-term.done{opacity:1;background:rgba(255,255,255,.04);color:var(--muted)}
+.f-term.done{opacity:1;background:rgba(0,0,0,.05);color:var(--muted)}
 .f-mul{color:var(--dimmed);opacity:.3;transition:opacity .3s}.f-mul.show{opacity:1}
 .f-result{font-size:.95rem;font-weight:900;margin-top:.25rem;opacity:0;transition:opacity .5s}.f-result.show{opacity:1}
 
@@ -67,7 +39,7 @@
 .dice-bars{margin-bottom:.2rem}
 .dice-row{display:flex;align-items:center;gap:.4rem;margin-bottom:.25rem}
 .dice-word{font-size:.78rem;font-weight:700;width:70px;text-align:right}
-.dice-track{flex:1;height:20px;background:rgba(255,255,255,.04);border-radius:4px;overflow:hidden}
+.dice-track{flex:1;height:20px;background:rgba(0,0,0,.05);border-radius:4px;overflow:hidden}
 .dice-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:5px;font-family:var(--mono);font-size:.55rem;font-weight:700;width:0%;transition:width .8s ease-out}
 .dice-pct{font-family:var(--mono);font-size:.65rem;width:50px;text-align:right;color:var(--dimmed)}
 .dice-etc{font-size:.6rem;color:var(--dimmed);text-align:center;font-family:var(--mono);margin-bottom:.2rem}
@@ -91,16 +63,16 @@
 .insight-blank.revealed{background:rgba(16,185,129,.12);color:var(--green);border-color:var(--green);border-style:solid}
 .insight-need{font-size:.68rem;color:var(--dimmed);margin-top:.25rem;line-height:1.5}.insight-need b{color:var(--orange)}
 .depth-bar{display:flex;gap:2px;margin:.3rem 0;height:6px}.depth-seg{flex:1;border-radius:3px;transition:all .5s;opacity:.15}.depth-seg.lit{opacity:1}
-.insight-conclusion{background:rgba(6,182,212,.06);border:1px solid rgba(6,182,212,.15);border-radius:10px;padding:1rem;text-align:center}
+.insight-conclusion{background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.15);border-radius:10px;padding:1rem;text-align:center}
 .insight-conclusion .big{font-size:1rem;font-weight:900;color:var(--cyan);margin-bottom:.3rem;line-height:1.5}
 .insight-conclusion .sub{font-size:.78rem;color:var(--muted);line-height:1.6}
 
 .ctrl{display:flex;justify-content:center;gap:.5rem;margin:.5rem 0}
-.btn{background:var(--bg2);border:1px solid rgba(255,255,255,.1);color:var(--white);padding:.4rem 1rem;border-radius:7px;font-family:var(--font);font-size:.7rem;font-weight:600;cursor:pointer;transition:all .3s}
-.btn:hover{border-color:rgba(255,255,255,.25);transform:translateY(-1px)}.btn:disabled{opacity:.3;cursor:not-allowed;transform:none}
+.btn{background:var(--bg2);border:1px solid rgba(0,0,0,.08);color:var(--white);padding:.4rem 1rem;border-radius:7px;font-family:var(--font);font-size:.7rem;font-weight:600;cursor:pointer;transition:all .3s}
+.btn:hover{border-color:rgba(0,0,0,.03);transform:translateY(-1px)}.btn:disabled{opacity:.3;cursor:not-allowed;transform:none}
 .btn-go{background:linear-gradient(135deg,var(--cyan),var(--blue));border:none;color:var(--white)}
-.explain{font-size:.7rem;color:var(--dimmed);line-height:1.6;padding:.5rem;background:rgba(0,0,0,.2);border-radius:7px;border-left:3px solid var(--dimmed);margin-top:.4rem}.explain .hl{color:var(--white);font-weight:700}
-.footer{text-align:center;padding:.75rem 0;color:var(--dimmed);font-size:.55rem;border-top:1px solid rgba(255,255,255,.04);margin-top:.5rem}
+.explain{font-size:.7rem;color:var(--dimmed);line-height:1.6;padding:.5rem;background:rgba(0,0,0,.04);border-radius:7px;border-left:3px solid var(--dimmed);margin-top:.4rem}.explain .hl{color:var(--white);font-weight:700}
+.footer{text-align:center;padding:.75rem 0;color:var(--dimmed);font-size:.55rem;border-top:1px solid rgba(0,0,0,.05);margin-top:.5rem}
 @media(max-width:750px){.insight-grid,.temp-row{grid-template-columns:1fr}.dice-header{flex-direction:column}}
 </style>
 </head>
@@ -236,12 +208,12 @@ function drawPie(topK){
   slices.forEach((p,i)=>{
     const sliceAngle=(p/total)*Math.PI*2;
     pieCtx.beginPath();pieCtx.moveTo(cx,cy);pieCtx.arc(cx,cy,r,startAngle,startAngle+sliceAngle);pieCtx.closePath();
-    pieCtx.fillStyle=i<colors.length?colors[i]:'#1C2A47';pieCtx.fill();
-    pieCtx.strokeStyle='#0B1120';pieCtx.lineWidth=1.5;pieCtx.stroke();
+    pieCtx.fillStyle=i<colors.length?colors[i]:'#E2E8F0';pieCtx.fill();
+    pieCtx.strokeStyle='#F8FAFC';pieCtx.lineWidth=1.5;pieCtx.stroke();
     startAngle+=sliceAngle;
   });
   // Center hole
-  pieCtx.beginPath();pieCtx.arc(cx,cy,30,0,Math.PI*2);pieCtx.fillStyle='#141E33';pieCtx.fill();
+  pieCtx.beginPath();pieCtx.arc(cx,cy,30,0,Math.PI*2);pieCtx.fillStyle='#F1F5F9';pieCtx.fill();
 }
 
 function buildStepBar(){const e=document.getElementById('stepBar');e.innerHTML='';for(let i=0;i<STEPS;i++)e.innerHTML+=`<div class="sd" id="sd-${i}"></div>`}

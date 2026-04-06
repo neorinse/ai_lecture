@@ -3,48 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CH3. LLM 파이프라인 시각화</title>
+<title>LLM 파이프라인 시각화</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-  /* ========================================= */
-  /* 🌟 사장님 맞춤형 확장 UI & 가운데 정렬 완결판 🌟 */
-  /* ========================================= */
-  
-  /* 1. 가로 넓이 확대 및 완벽한 가운데 정렬 */
-  .wrap { 
-    max-width: 96% !important; /* 화면 가로폭의 96%까지 시원하게 사용 */
-    width: 100% !important;
-    margin: 0 auto !important; /* 양옆 여백을 정확히 반반씩 나누어 무조건 가운데 정렬 */
-  }
-
-  /* 2. 전체 글자 크기 1.3배 확대 (가로가 넓어진 만큼 글자도 시원하게) */
-  html { font-size: 18px !important; }
-
-  /* 3. 각 영역(박스)을 더 입체적이고 고급스럽게 표현 (입체 그림자 & 테두리) */
-  .section, .panel, .illust, .card, .sim-panel {
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
-    border-radius: 16px !important;
-  }
-
-  /* 4. 제목에 은은한 빛 효과를 주어 가독성 및 세련미 향상 */
-  .hdr h1 {
-    text-shadow: 0 4px 20px rgba(255, 255, 255, 0.15) !important;
-  }
-
-  /* 5. 버튼이나 탭에 마우스를 올렸을 때 살짝 떠오르는 부드러운 애니메이션 */
-  button, .tab {
-    transition: all 0.2s ease-in-out !important;
-  }
-  button:not(:disabled):hover, .tab:hover {
-    transform: translateY(-2px);
-    filter: brightness(1.2);
-  }
-  /* ========================================= */
 :root {
-  --bg: #0B1120;
-  --bg2: #141E33;
-  --bg3: #1C2A47;
+  --bg: #F8FAFC;
+  --bg2: #F1F5F9;
+  --bg3: #E2E8F0;
   --blue: #3B82F6;
   --cyan: #06B6D4;
   --green: #10B981;
@@ -52,9 +17,9 @@
   --pink: #EC4899;
   --purple: #8B5CF6;
   --red: #EF4444;
-  --white: #F1F5F9;
-  --muted: #94A3B8;
-  --dimmed: #64748B;
+  --white: #0F172A;
+  --muted: #475569;
+  --dimmed: #94A3B8;
   --font: 'Noto Sans KR', sans-serif;
   --mono: 'JetBrains Mono', monospace;
 }
@@ -62,7 +27,7 @@
 body { background:var(--bg); color:var(--white); font-family:var(--font); min-height:100vh; }
 body::after { content:''; position:fixed; inset:0; background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E"); pointer-events:none; z-index:9999; }
 
-.wrap { max-width:900px; margin:0 auto; padding:1.5rem; }
+.wrap { max-width:1100px; margin:0 auto; padding:1.5rem; }
 
 /* Header */
 .hdr { text-align:center; margin-bottom:1.5rem; }
@@ -184,7 +149,7 @@ body::after { content:''; position:fixed; inset:0; background:url("data:image/sv
 }
 
 /* Pipeline Architecture Diagram */
-.arch-flow{background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:1rem .75rem;margin-bottom:1.25rem;overflow-x:auto}
+.arch-flow{background:var(--bg2);border:1px solid rgba(0,0,0,.06);border-radius:12px;padding:1rem .75rem;margin-bottom:1.25rem;overflow-x:auto}
 .arch-flow-title{font-size:.75rem;font-weight:700;color:var(--dimmed);margin-bottom:.6rem;text-align:center;font-family:var(--mono);letter-spacing:1px}
 .arch-pipe{display:flex;align-items:center;gap:0;min-width:850px}
 .arch-node{text-align:center;position:relative;flex-shrink:0}
@@ -192,8 +157,8 @@ body::after { content:''; position:fixed; inset:0; background:url("data:image/sv
 .arch-arrow{color:var(--dimmed);font-size:.9rem;padding:0 .2rem;flex-shrink:0;margin-top:.5rem}
 
 /* Vector shape visualizations */
-.vec-shape{background:var(--bg3);border-radius:6px;padding:.4rem;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.06);transition:all .4s;position:relative}
-.vec-shape.lit{border-color:rgba(255,255,255,.15)}
+.vec-shape{background:var(--bg3);border-radius:6px;padding:.4rem;display:flex;align-items:center;justify-content:center;border:1px solid rgba(0,0,0,.06);transition:all .4s;position:relative}
+.vec-shape.lit{border-color:rgba(0,0,0,.12)}
 .vec-shape .a-desc{font-family:var(--mono);font-size:.5rem;color:var(--dimmed);margin-top:.2rem;text-align:center}
 
 /* Input: text box */
@@ -223,10 +188,10 @@ body::after { content:''; position:fixed; inset:0; background:url("data:image/sv
 .v-prob-list{padding:.25rem .3rem;display:flex;flex-direction:column;gap:1px}
 .vp-r{display:flex;align-items:center;gap:.25rem;height:13px}
 .vp-tk{font-family:var(--mono);font-size:.48rem;width:35px;text-align:right;flex-shrink:0;overflow:hidden;white-space:nowrap}
-.vp-tr{flex:1;height:9px;background:rgba(255,255,255,.03);border-radius:2px;overflow:hidden}
+.vp-tr{flex:1;height:9px;background:rgba(0,0,0,.04);border-radius:2px;overflow:hidden}
 .vp-fl{height:100%;border-radius:2px;transition:width .5s}
 .vp-pc{font-family:var(--mono);font-size:.42rem;width:28px;text-align:right;flex-shrink:0}
-.vp-tot{display:flex;justify-content:space-between;align-items:center;margin-top:2px;padding-top:2px;border-top:1px solid rgba(255,255,255,.04)}
+.vp-tot{display:flex;justify-content:space-between;align-items:center;margin-top:2px;padding-top:2px;border-top:1px solid rgba(0,0,0,.05)}
 .v-prob-list.lit{box-shadow:0 0 12px rgba(245,158,11,.2)}
 
 /* Output token */
@@ -252,7 +217,7 @@ body::after { content:''; position:fixed; inset:0; background:url("data:image/sv
 <body>
 <div class="wrap">
   <div class="hdr">
-    <div class="hdr-tag">LLM Pipeline Visualization</div>
+    <div class="hdr-tag">CHAPTER 03 LLM Pipeline</div>
     <h1>다음 단어 맞추기의 여정</h1>
     <p>"서울의 인구수는?" → AI가 한 토큰씩 답을 만들어가는 과정</p>
   </div>
@@ -566,11 +531,11 @@ async function renderEmbedding() {
       <span style="font-family:var(--mono);font-size:0.6rem;color:var(--dimmed);white-space:nowrap;margin-left:0.3rem">12,288d</span>
     `;
     area.appendChild(row);
-    await delay(200);
+    await delay(1200);
     row.classList.add('show');
   }
 
-  await delay(300);
+  await delay(1300);
   document.getElementById('exp2').style.opacity = '1';
 }
 
@@ -638,10 +603,10 @@ async function renderTransformer() {
       ).join('');
     }
 
-    await delay(60);
+    await delay(160);
   }
 
-  await delay(300);
+  await delay(1300);
   document.getElementById('exp3').style.opacity = '1';
 }
 
@@ -679,13 +644,13 @@ async function renderOutput() {
     `;
     area.appendChild(row);
     
-    await delay(150);
+    await delay(1150);
     row.classList.add('show');
-    await delay(50);
+    await delay(150);
     document.getElementById(`lbar-${i}`).style.width = barW + '%';
   }
 
-  await delay(400);
+  await delay(4100);
   document.getElementById('exp4').style.opacity = '1';
 }
 
@@ -713,12 +678,12 @@ async function renderDice() {
   
   for (let i = 0; i < 15; i++) {
     dice.textContent = faces[i % faces.length];
-    await delay(80);
+    await delay(180);
   }
   dice.classList.remove('rolling');
   dice.textContent = '🎲';
 
-  await delay(200);
+  await delay(1200);
 
   const result = document.getElementById('diceResult');
   if (probs.pick === '[종료]') {
@@ -728,7 +693,7 @@ async function renderDice() {
   }
   result.classList.add('show');
 
-  await delay(300);
+  await delay(1300);
   document.getElementById('exp5').style.opacity = '1';
 }
 
