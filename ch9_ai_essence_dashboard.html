@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH9. AI의 본질 — 하나의 패턴</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F8FAFC;--bg2:#F1F5F9;--bg3:#E2E8F0;--blue:#3B82F6;--cyan:#06B6D4;--green:#10B981;--orange:#F59E0B;--pink:#EC4899;--purple:#8B5CF6;--red:#EF4444;--white:#0F172A;--muted:#475569;--dimmed:#94A3B8;--font:'Noto Sans KR',sans-serif;--mono:'JetBrains Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}body{background:var(--bg);color:var(--white);font-family:var(--font)}.wrap{max-width:1000px;margin:0 auto;padding:1.25rem}
+.hdr{text-align:center;margin-bottom:1.5rem}.hdr-tag{font-family:var(--mono);font-size:.65rem;color:var(--purple);letter-spacing:4px;text-transform:uppercase;margin-bottom:.4rem}.hdr h1{font-size:1.9rem;font-weight:900;background:linear-gradient(135deg,var(--white),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.3rem}.hdr p{color:var(--muted);font-size:.85rem}
+.section{background:var(--bg2);border:1px solid rgba(0,0,0,.06);border-radius:14px;padding:1.5rem;margin-bottom:1.25rem;position:relative;overflow:hidden}
+
+/* The ONE pattern */
+.pattern-flow{display:flex;align-items:center;justify-content:center;gap:0;margin:1rem 0;flex-wrap:wrap}
+.pf-step{text-align:center;padding:.6rem .4rem;min-width:100px}
+.pf-ico{font-size:2rem;margin-bottom:.3rem}
+.pf-name{font-size:.85rem;font-weight:900;margin-bottom:.1rem}
+.pf-desc{font-size:.62rem;color:var(--muted);line-height:1.4}
+.pf-arrow{font-size:1.2rem;color:var(--dimmed);padding:0 .1rem;margin-top:-.5rem}
+
+/* Applications of the pattern */
+.app-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.5rem;margin:.75rem 0}
+.app-card{background:var(--bg3);border-radius:10px;padding:.7rem;border-left:3px solid var(--dimmed);display:flex;gap:.5rem;align-items:flex-start;transition:all .3s;cursor:pointer;opacity:.3}
+.app-card.show{opacity:1}
+.app-card:hover{transform:translateY(-1px)}
+.app-ico{font-size:1.3rem;flex-shrink:0;margin-top:.1rem}
+.app-body{flex:1}
+.app-name{font-size:.78rem;font-weight:900;margin-bottom:.1rem}
+.app-formula{font-family:var(--mono);font-size:.58rem;color:var(--dimmed);line-height:1.4}
+.app-formula b{color:var(--white)}
+
+/* Three pillars */
+.pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin:.75rem 0}
+.pillar{background:var(--bg3);border-radius:12px;padding:1rem;text-align:center;border-top:4px solid var(--dimmed);transition:all .4s;cursor:pointer;opacity:.3}
+.pillar.show{opacity:1}
+.pillar:hover{transform:translateY(-2px)}
+.pillar-ico{font-size:2.2rem;margin-bottom:.3rem}
+.pillar-name{font-size:1rem;font-weight:900;margin-bottom:.2rem}
+.pillar-why{font-size:.72rem;color:var(--muted);line-height:1.5;margin-bottom:.3rem}
+.pillar-stat{font-family:var(--mono);font-size:.8rem;font-weight:900;padding:.2rem .5rem;border-radius:5px;display:inline-block}
+
+/* Timeline */
+.timeline{position:relative;margin:1rem 0;padding-left:20px}
+.timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:var(--bg3)}
+.tl-item{position:relative;margin-bottom:.6rem;padding-left:20px;opacity:.3;transition:all .4s}
+.tl-item.show{opacity:1}
+.tl-item::before{content:'';position:absolute;left:-16px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--dimmed);border:2px solid var(--bg2)}
+.tl-year{font-family:var(--mono);font-size:.65rem;color:var(--dimmed);font-weight:700}
+.tl-title{font-size:.8rem;font-weight:900;margin:.05rem 0}
+.tl-desc{font-size:.65rem;color:var(--muted);line-height:1.4}
+
+/* Final message */
+.final{background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.12);border-radius:14px;padding:1.5rem;text-align:center;margin-top:1rem}
+.final-big{font-size:1.15rem;font-weight:900;color:var(--purple);line-height:1.7;margin-bottom:.5rem}
+.final-sub{font-size:.82rem;color:var(--muted);line-height:1.7}
+.final-sub b{color:var(--white)}
+
+.ctrl{display:flex;justify-content:center;gap:.5rem;margin:.6rem 0}
+.btn{background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.08);color:var(--muted);padding:.4rem .9rem;border-radius:7px;font-size:.7rem;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .2s}
+.btn:hover{background:rgba(0,0,0,.08);color:var(--white)}
+.btn-go{background:linear-gradient(135deg,var(--purple),var(--blue));border:none;color:#fff}
+.explain{font-size:.72rem;color:var(--muted);line-height:1.6;padding:.5rem;background:rgba(0,0,0,.03);border-radius:7px;border-left:3px solid var(--dimmed);margin-top:.5rem}.explain .hl{color:var(--white);font-weight:700}
+.footer{text-align:center;padding:.75rem 0;color:var(--dimmed);font-size:.55rem;border-top:1px solid rgba(0,0,0,.06);margin-top:.5rem}
+@media(max-width:750px){.pillars,.app-grid{grid-template-columns:1fr}.pattern-flow{flex-direction:column}.pf-arrow{transform:rotate(90deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr"><div class="hdr-tag">Chapter 09</div><h1>AI의 본질 — 하나의 패턴</h1><p>8개 챕터를 관통하는 단 하나의 원리</p></div>
+
+  <!-- Section 1: The ONE Pattern -->
+  <div class="section">
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--purple),var(--pink))"></div>
+    <div style="font-size:1.1rem;font-weight:900;text-align:center;margin-bottom:.1rem">AI 발전을 관통하는 하나의 패턴</div>
+    <div style="font-size:.78rem;color:var(--muted);text-align:center;margin-bottom:.5rem">텍스트든, 이미지든, 코드든, 행동이든 — 결국 같은 구조</div>
+
+    <div class="pattern-flow">
+      <div class="pf-step"><div class="pf-ico">🌍</div><div class="pf-name" style="color:var(--blue)">수집</div><div class="pf-desc">세상의 모든 데이터를<br>대량으로 모은다</div></div>
+      <div class="pf-arrow">→</div>
+      <div class="pf-step"><div class="pf-ico">📊</div><div class="pf-name" style="color:var(--purple)">학습</div><div class="pf-desc">확률 분포를<br>모델에 저장한다</div></div>
+      <div class="pf-arrow">→</div>
+      <div class="pf-step"><div class="pf-ico">🎲</div><div class="pf-name" style="color:var(--orange)">생성</div><div class="pf-desc">분포에서 샘플링하여<br>새로운 것을 만든다</div></div>
+      <div class="pf-arrow">→</div>
+      <div class="pf-step"><div class="pf-ico">📏</div><div class="pf-name" style="color:var(--green)">스케일</div><div class="pf-desc">더 크게 키우면<br>갑자기 더 똑똑해진다</div></div>
+    </div>
+
+    <div style="font-size:.78rem;color:var(--muted);text-align:center;margin-bottom:.6rem">이 패턴은 모든 AI에 동일하게 적용됩니다</div>
+
+    <div class="app-grid" id="appGrid">
+      <div class="app-card show" style="border-left-color:var(--blue)" id="ag0">
+        <div class="app-ico">📝</div>
+        <div class="app-body"><div class="app-name" style="color:var(--blue)">텍스트 (ChatGPT, Claude)</div><div class="app-formula"><b>수조 문장</b> 수집 → 다음 토큰 확률 학습 → 샘플링으로 문장 생성 → 모델 키우니 추론 능력 출현</div></div>
+      </div>
+      <div class="app-card" style="border-left-color:var(--pink)" id="ag1">
+        <div class="app-ico">🖼️</div>
+        <div class="app-body"><div class="app-name" style="color:var(--pink)">이미지 (DALL-E, Midjourney)</div><div class="app-formula"><b>수억 장 이미지+설명</b> 수집 → 텍스트→이미지 확률 학습 → 샘플링으로 이미지 생성 → 키우니 사실적</div></div>
+      </div>
+      <div class="app-card" style="border-left-color:var(--purple)" id="ag2">
+        <div class="app-ico">💻</div>
+        <div class="app-body"><div class="app-name" style="color:var(--purple)">코드 (Claude Code, Copilot)</div><div class="app-formula"><b>수십억 줄 코드</b> 수집 → 다음 코드 토큰 확률 학습 → 샘플링으로 코드 생성 → 키우니 디버깅 능력 출현</div></div>
+      </div>
+      <div class="app-card" style="border-left-color:var(--cyan)" id="ag3">
+        <div class="app-ico">🖥️</div>
+        <div class="app-body"><div class="app-name" style="color:var(--cyan)">행동 (Computer Use)</div><div class="app-formula"><b>수억 장 스크린샷+행동</b> 수집 → 다음 행동 확률 학습 → 샘플링으로 마우스/키보드 → 키우니 복잡한 작업 가능</div></div>
+      </div>
+      <div class="app-card" style="border-left-color:var(--green)" id="ag4">
+        <div class="app-ico">🎵</div>
+        <div class="app-body"><div class="app-name" style="color:var(--green)">음악 (Suno)</div><div class="app-formula"><b>수백만 곡</b> 수집 → 다음 음표/파형 확률 학습 → 샘플링으로 작곡 → 키우니 감정 표현 가능</div></div>
+      </div>
+      <div class="app-card" style="border-left-color:var(--orange)" id="ag5">
+        <div class="app-ico">🧬</div>
+        <div class="app-body"><div class="app-name" style="color:var(--orange)">과학 (AlphaFold)</div><div class="app-formula"><b>수억 단백질 구조</b> 수집 → 아미노산→구조 확률 학습 → 샘플링으로 구조 예측 → 키우니 신약 개발 기여</div></div>
+      </div>
+    </div>
+    <div class="ctrl"><button class="btn btn-go" onclick="revealApps()">▶ 전체 보기</button></div>
+  </div>
+
+  <!-- Section 2: Three Pillars of Scale -->
+  <div class="section">
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green),var(--orange),var(--red))"></div>
+    <div style="font-size:1.1rem;font-weight:900;text-align:center;margin-bottom:.1rem">🔑 결국 핵심은 세 가지</div>
+    <div style="font-size:.78rem;color:var(--muted);text-align:center;margin-bottom:.75rem">AI 경쟁력을 결정하는 세 축 — 이것이 수조 원 투자의 이유</div>
+
+    <div class="pillars" id="pillars">
+      <div class="pillar" style="border-top-color:var(--blue)" id="pl0">
+        <div class="pillar-ico">📚</div>
+        <div class="pillar-name" style="color:var(--blue)">데이터</div>
+        <div class="pillar-why">더 많은 데이터 = 더 정확한 확률 분포.<br>인터넷 전체, 책, 코드, 논문...<br><b style="color:var(--white)">고품질 데이터가 바닥나기 시작</b><br>→ 합성 데이터, 자체 데이터의 가치 급상승</div>
+        <div class="pillar-stat" style="background:rgba(59,130,246,.1);color:var(--blue)">15조+ 토큰</div>
+      </div>
+      <div class="pillar" style="border-top-color:var(--orange)" id="pl1">
+        <div class="pillar-ico">⚡</div>
+        <div class="pillar-name" style="color:var(--orange)">연산 (GPU)</div>
+        <div class="pillar-why">더 많은 연산 = 더 큰 모델, 더 오래 학습.<br>NVIDIA H200, 그 다음 Blackwell...<br><b style="color:var(--white)">GPU 확보 = 국가/기업 경쟁력</b><br>→ 소버린 AI, GPU 외교의 시대</div>
+        <div class="pillar-stat" style="background:rgba(245,158,11,.1);color:var(--orange)">수만 GPU × 수개월</div>
+      </div>
+      <div class="pillar" style="border-top-color:var(--green)" id="pl2">
+        <div class="pillar-ico">🧠</div>
+        <div class="pillar-name" style="color:var(--green)">알고리즘</div>
+        <div class="pillar-why">같은 데이터, 같은 GPU로도<br>더 효율적으로 학습하는 방법.<br><b style="color:var(--white)">Transformer, GRPO 같은 혁신</b><br>→ 적은 자원으로 더 나은 성능</div>
+        <div class="pillar-stat" style="background:rgba(16,185,129,.1);color:var(--green)">DeepSeek: 18배 효율</div>
+      </div>
+    </div>
+    <div class="ctrl"><button class="btn btn-go" onclick="revealPillars()">▶ 단계별 보기</button></div>
+
+    <div class="explain" style="border-left-color:var(--orange)">이 세 가지를 동시에 키우면 성능이 <span class="hl">예측 가능하게 향상</span>됩니다(Scaling Law). 그리고 어느 임계점을 넘으면 <span class="hl">"갑자기" 새로운 능력이 출현</span>(Emergent Capability). 이것이 AI 기업들이 "더 크게, 더 많이, 더 효율적으로"를 외치는 이유.</div>
+  </div>
+
+  <!-- Section 3: Where it's heading -->
+  <div class="section">
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--purple),var(--pink))"></div>
+    <div style="font-size:1.1rem;font-weight:900;text-align:center;margin-bottom:.1rem">🔮 어디로 향하고 있는가</div>
+    <div style="font-size:.78rem;color:var(--muted);text-align:center;margin-bottom:.75rem">AI 발전의 궤적 — 지금 우리는 어디에 있는가</div>
+
+    <div class="timeline" id="timeline">
+      <div class="tl-item" id="tl0" style="opacity:1">
+        <div class="tl-year">2017</div>
+        <div class="tl-title" style="color:var(--blue)">Transformer 발명</div>
+        <div class="tl-desc">"Attention Is All You Need" — 현재 모든 LLM의 기반 구조</div>
+      </div>
+      <div class="tl-item" id="tl1">
+        <div class="tl-year">2020</div>
+        <div class="tl-title" style="color:var(--purple)">Scaling Law 발견</div>
+        <div class="tl-desc">"키우면 반드시 좋아진다"는 법칙 발견 → GPU 대규모 투자 시작</div>
+      </div>
+      <div class="tl-item" id="tl2">
+        <div class="tl-year">2022</div>
+        <div class="tl-title" style="color:var(--green)">ChatGPT 등장</div>
+        <div class="tl-desc">Emergent Capability의 대중적 체험. "AI가 대화를 한다" → 세상이 바뀜</div>
+      </div>
+      <div class="tl-item" id="tl3">
+        <div class="tl-year">2024~25</div>
+        <div class="tl-title" style="color:var(--orange)">에이전트 시대 시작</div>
+        <div class="tl-desc">도구 사용 + 자율 판단. 코드 생성, Computer Use, Deep Research 실용화</div>
+      </div>
+      <div class="tl-item" id="tl4">
+        <div class="tl-year">2025~26</div>
+        <div class="tl-title" style="color:var(--pink)">추론 능력 급성장</div>
+        <div class="tl-desc">o1, DeepSeek-R1, Claude — "생각하는 AI"의 등장. 복잡한 문제를 단계별로 풀기 시작</div>
+      </div>
+      <div class="tl-item" id="tl5">
+        <div class="tl-year">→ 다음</div>
+        <div class="tl-title" style="color:var(--red)">AGI (범용 인공지능)</div>
+        <div class="tl-desc">사람 수준의 범용 지능. 언제 올지는 모르지만, 방향은 확실. 같은 패턴의 극한 — 수집→학습→생성→스케일</div>
+      </div>
+    </div>
+    <div class="ctrl"><button class="btn btn-go" onclick="revealTimeline()">▶ 타임라인 보기</button></div>
+  </div>
+
+  <!-- Final Message -->
+  <div class="final">
+    <div class="final-big">
+      세상의 데이터를 모아 → 확률을 학습하고 → 샘플링으로 새로운 것을 만든다<br>
+      이것을 더 크게 반복하면 → 갑자기 "지능"이 출현한다<br><br>
+      이 패턴을 이해하면, AI의 과거·현재·미래가 보입니다
+    </div>
+    <div class="final-sub">
+      <b>데이터</b>를 가진 자, <b>연산</b>을 가진 자, <b>알고리즘</b>을 가진 자가 AI 시대를 이끕니다.<br>
+      우리는 통신사로서 <b>데이터</b>와 <b>인프라</b>를 이미 보유하고 있고,<br>
+      소버린 AI 전략으로 <b>알고리즘</b>까지 내재화하고 있습니다.<br><br>
+      <b style="color:var(--purple)">지금이 바로, AI 시대의 한복판입니다.</b>
+    </div>
+  </div>
+
+  <div class="footer">CEO AI Intelligence · Chapter 09 · AI의 본질 · 2026</div>
+</div>
+
+<script>
+var appIdx = 1; // first one already shown
+function revealApps() {
+  if (appIdx > 5) { appIdx = 0; for(var i=0;i<6;i++) document.getElementById('ag'+i).classList.remove('show'); document.getElementById('ag0').classList.add('show'); appIdx=1; return; }
+  document.getElementById('ag' + appIdx).classList.add('show');
+  appIdx++;
+}
+
+var plIdx = 0;
+function revealPillars() {
+  if (plIdx > 2) { plIdx = 0; for(var i=0;i<3;i++) document.getElementById('pl'+i).classList.remove('show'); return; }
+  document.getElementById('pl' + plIdx).classList.add('show');
+  plIdx++;
+}
+
+var tlIdx = 1; // first already visible
+function revealTimeline() {
+  if (tlIdx > 5) { tlIdx = 0; for(var i=0;i<6;i++){document.getElementById('tl'+i).classList.remove('show');document.getElementById('tl'+i).style.opacity=i===0?'1':'.3'} tlIdx=1; return; }
+  var el = document.getElementById('tl' + tlIdx);
+  el.classList.add('show');
+  el.style.opacity = '1';
+  // Update dot color
+  var colors = ['#3B82F6','#8B5CF6','#10B981','#F59E0B','#EC4899','#EF4444'];
+  el.querySelector('.tl-item::before');
+  tlIdx++;
+}
+</script>
+</body>
+</html>

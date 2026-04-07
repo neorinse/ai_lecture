@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH7. AI 에이전트 활용 사례</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F8FAFC;--bg2:#F1F5F9;--bg3:#E2E8F0;--blue:#3B82F6;--cyan:#06B6D4;--green:#10B981;--orange:#F59E0B;--pink:#EC4899;--purple:#8B5CF6;--red:#EF4444;--white:#0F172A;--muted:#475569;--dimmed:#94A3B8;--font:'Noto Sans KR',sans-serif;--mono:'JetBrains Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}body{background:var(--bg);color:var(--white);font-family:var(--font)}.wrap{max-width:1060px;margin:0 auto;padding:1.25rem}
+.hdr{text-align:center;margin-bottom:1.25rem}.hdr-tag{font-family:var(--mono);font-size:.65rem;color:var(--green);letter-spacing:4px;text-transform:uppercase;margin-bottom:.3rem}.hdr h1{font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,var(--white),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.2rem}.hdr p{color:var(--muted);font-size:.85rem}
+.tabs{display:flex;gap:3px;margin-bottom:1rem;background:var(--bg2);border-radius:10px;padding:3px;overflow-x:auto}
+.tab{flex:1;padding:.45rem .3rem;text-align:center;border-radius:7px;font-size:.6rem;font-weight:700;cursor:pointer;transition:all .3s;color:var(--dimmed);border:none;background:transparent;font-family:var(--font);white-space:nowrap}.tab.active{color:#fff}
+.part{display:none}.part.show{display:block}
+.section{background:var(--bg2);border:1px solid rgba(0,0,0,.06);border-radius:14px;padding:1.5rem;margin-bottom:1rem;position:relative;overflow:hidden}
+
+/* Use case layout */
+.uc-header{margin-bottom:.75rem}
+.uc-title{font-size:1.1rem;font-weight:900;margin-bottom:.1rem}
+.uc-sub{font-size:.75rem;color:var(--muted)}
+.uc-products{display:flex;gap:.3rem;flex-wrap:wrap;margin:.5rem 0}
+.uc-product{font-family:var(--mono);font-size:.55rem;padding:.15rem .4rem;border-radius:4px;background:rgba(0,0,0,.04);color:var(--muted);border:1px solid rgba(0,0,0,.06)}
+
+/* 3-row explanation */
+.uc-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.6rem}
+.uc-box{background:var(--bg3);border-radius:10px;padding:.8rem;border-top:3px solid var(--dimmed)}
+.uc-box-title{font-size:.75rem;font-weight:900;margin-bottom:.3rem}
+.uc-box-text{font-size:.7rem;color:var(--muted);line-height:1.6}
+.uc-box-text b{color:var(--white)}
+
+/* How it works - flow */
+.flow-box{background:var(--bg3);border-radius:10px;padding:.8rem;margin-bottom:.6rem}
+.flow-title{font-size:.8rem;font-weight:900;margin-bottom:.5rem}
+.flow-steps{display:flex;align-items:center;gap:.2rem;overflow-x:auto;padding-bottom:.3rem}
+.flow-step{background:var(--bg2);border-radius:8px;padding:.4rem .5rem;text-align:center;min-width:80px;flex-shrink:0;border-top:2px solid var(--dimmed)}
+.flow-step .f-ico{font-size:1rem;margin-bottom:.1rem}
+.flow-step .f-name{font-size:.6rem;font-weight:700}
+.flow-step .f-desc{font-size:.48rem;color:var(--dimmed);margin-top:.05rem}
+.flow-arrow{font-size:.7rem;color:var(--dimmed);flex-shrink:0}
+
+/* "What LLM learned" insight */
+.insight-box{background:rgba(59,130,246,.05);border:1px solid rgba(59,130,246,.1);border-radius:10px;padding:.7rem;margin-bottom:.5rem}
+.insight-title{font-size:.75rem;font-weight:900;color:var(--blue);margin-bottom:.2rem}
+.insight-text{font-size:.7rem;color:var(--muted);line-height:1.6}
+.insight-text b{color:var(--white)}
+
+/* Impact stat */
+.impact{display:flex;gap:.5rem;margin-bottom:.5rem}
+.impact-card{flex:1;background:var(--bg3);border-radius:8px;padding:.5rem;text-align:center;border-top:3px solid var(--dimmed)}
+.impact-num{font-family:var(--mono);font-size:1.1rem;font-weight:900}
+.impact-label{font-size:.55rem;color:var(--dimmed);margin-top:.05rem}
+
+.explain{font-size:.7rem;color:var(--muted);line-height:1.6;padding:.5rem;background:rgba(0,0,0,.03);border-radius:7px;border-left:3px solid var(--dimmed);margin-top:.4rem}.explain .hl{color:var(--white);font-weight:700}
+.footer{text-align:center;padding:.75rem 0;color:var(--dimmed);font-size:.55rem;border-top:1px solid rgba(0,0,0,.06);margin-top:.5rem}
+@media(max-width:750px){.uc-grid{grid-template-columns:1fr}.flow-steps{flex-wrap:wrap}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr"><div class="hdr-tag">Chapter 08</div><h1>AI 에이전트 활용 사례</h1><p>에이전트가 실제로 무엇을 할 수 있는지, 그리고 왜 가능한지</p></div>
+
+  <div class="tabs">
+    <div class="tab active" id="t1" onclick="sT(1)" style="background:linear-gradient(135deg,#8B5CF6,#3B82F6)">💻 코드 생성</div>
+    <div class="tab" id="t2" onclick="sT(2)">🖥️ 컴퓨터 사용</div>
+    <div class="tab" id="t3" onclick="sT(3)">🔍 딥 리서치</div>
+    <div class="tab" id="t4" onclick="sT(4)">📊 데이터 분석</div>
+    <div class="tab" id="t5" onclick="sT(5)">🎨 콘텐츠 생성</div>
+  </div>
+
+  <!-- TAB 1: Code Generation -->
+  <div class="part show" id="p1">
+    <div class="section">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--purple),var(--blue))"></div>
+      <div class="uc-header">
+        <div class="uc-title" style="color:var(--purple)">💻 코드 생성 & 소프트웨어 개발</div>
+        <div class="uc-sub">자연어로 설명하면 코드를 작성 · 디버깅 · 리팩토링하는 AI 에이전트</div>
+        <div class="uc-products"><span class="uc-product">Claude Code</span><span class="uc-product">GitHub Copilot</span><span class="uc-product">Cursor</span><span class="uc-product">Windsurf</span></div>
+      </div>
+
+      <div class="flow-box">
+        <div class="flow-title">🔄 동작 원리</div>
+        <div class="flow-steps">
+          <div class="flow-step" style="border-top-color:var(--blue)"><div class="f-ico">👤</div><div class="f-name">자연어 요청</div><div class="f-desc">"로그인 페이지<br>만들어줘"</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="border-top-color:var(--purple)"><div class="f-ico">🧠</div><div class="f-name">LLM 추론</div><div class="f-desc">요구사항 분석<br>설계 결정</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="border-top-color:var(--green)"><div class="f-ico">📝</div><div class="f-name">코드 생성</div><div class="f-desc">다음 토큰으로<br>코드를 출력</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="border-top-color:var(--orange)"><div class="f-ico">🔧</div><div class="f-name">실행 & 테스트</div><div class="f-desc">직접 실행 후<br>오류 확인</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="border-top-color:var(--cyan)"><div class="f-ico">🔄</div><div class="f-name">자율 수정</div><div class="f-desc">에러 분석 후<br>스스로 디버깅</div></div>
+        </div>
+      </div>
+
+      <div class="uc-grid">
+        <div class="uc-box" style="border-top-color:var(--blue)">
+          <div class="uc-box-title" style="color:var(--blue)">🎓 LLM이 학습한 것</div>
+          <div class="uc-box-text">GitHub의 <b>수십억 줄의 오픈소스 코드</b>를 학습. "다음 토큰 맞추기"로 코드를 학습하면 → 문법, 패턴, 함수 구조, 에러 해결 방법까지 확률로 저장됨. <b>모든 프로그래밍 언어</b>를 동시에 학습하므로 언어 간 번역도 가능.</div>
+        </div>
+        <div class="uc-box" style="border-top-color:var(--purple)">
+          <div class="uc-box-title" style="color:var(--purple)">🔑 에이전트인 이유</div>
+          <div class="uc-box-text">단순 코드 생성이 아닌 → <b>코드 실행 → 에러 확인 → 수정 → 재실행</b>을 자율 반복. 파일 시스템 탐색, 터미널 명령 실행, 테스트 수행까지 <b>도구를 사용하는 에이전트</b>로 동작.</div>
+        </div>
+      </div>
+
+      <div class="impact">
+        <div class="impact-card" style="border-top-color:var(--green)"><div class="impact-num" style="color:var(--green)">30~55%</div><div class="impact-label">개발 생산성 향상</div></div>
+        <div class="impact-card" style="border-top-color:var(--purple)"><div class="impact-num" style="color:var(--purple)">80.9%</div><div class="impact-label">SWE-bench 통과율 (Claude)</div></div>
+        <div class="impact-card" style="border-top-color:var(--blue)"><div class="impact-num" style="color:var(--blue)">全 언어</div><div class="impact-label">Python, Java, C++ 등</div></div>
+      </div>
+
+      <div class="explain" style="border-left-color:var(--purple)"><span class="hl">CEO 시사점:</span> 개발자 1명이 AI와 함께 2~3명분의 생산성. IT 개발팀에 당장 도입 가능한 가장 검증된 활용 사례.</div>
+    </div>
+  </div>
+
+  <!-- TAB 2: Computer Use -->
+  <div class="part" id="p2">
+    <div class="section">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--cyan),var(--green))"></div>
+      <div class="uc-header">
+        <div class="uc-title" style="color:var(--cyan)">🖥️ 컴퓨터 사용 (Computer Use)</div>
+        <div class="uc-sub">AI가 직접 화면을 보고, 마우스를 움직이고, 키보드를 치는 에이전트</div>
+        <div class="uc-products"><span class="uc-product">Claude Computer Use</span><span class="uc-product">OpenAI Operator</span><span class="uc-product">Google Mariner</span></div>
+      </div>
+
+      <div class="flow-box">
+        <div class="flow-title">🔄 동작 원리 — 스크린샷 → 추론 → 행동 루프</div>
+        <div class="flow-steps">
+          <div class="flow-step" style="border-top-color:var(--cyan)"><div class="f-ico">📸</div><div class="f-name">스크린샷 촬영</div><div class="f-desc">현재 화면을<br>이미지로 캡처</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="border-top-color:var(--purple)"><div class="f-ico">👁️</div><div class="f-name">화면 이해</div><div class="f-desc">멀티모달 LLM이<br>이미지를 "읽음"</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="border-top-color:var(--green)"><div class="f-ico">🧠</div><div class="f-name">다음 행동 결정</div><div class="f-desc">"검색창을 클릭<br>해야겠다"</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="border-top-color:var(--orange)"><div class="f-ico">🖱️</div><div class="f-name">마우스/키보드</div><div class="f-desc">클릭, 타이핑<br>스크롤 실행</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="border-top-color:var(--red)"><div class="f-ico">🔁</div><div class="f-name">결과 확인</div><div class="f-desc">다시 스크린샷<br>→ 루프 반복</div></div>
+        </div>
+      </div>
+
+      <div class="uc-grid">
+        <div class="uc-box" style="border-top-color:var(--cyan)">
+          <div class="uc-box-title" style="color:var(--cyan)">🎓 LLM이 학습한 것</div>
+          <div class="uc-box-text"><b>멀티모달 학습</b>: 이미지와 텍스트를 함께 학습. 화면의 스크린샷을 보고 "이건 버튼이다", "여기가 입력창이다"를 이해. UI 레이아웃, 아이콘 의미, 웹사이트 구조를 <b>수억 장의 스크린샷</b>에서 학습. "다음 행동 맞추기" = "이 화면 상태에서 사람이 보통 어디를 클릭하는가"를 예측.</div>
+        </div>
+        <div class="uc-box" style="border-top-color:var(--green)">
+          <div class="uc-box-title" style="color:var(--green)">🔑 에이전트인 이유</div>
+          <div class="uc-box-text"><b>스크린샷 → 판단 → 행동 → 스크린샷</b> 루프를 자율 반복. API가 없는 앱도 사람처럼 GUI로 조작 가능. ERP 데이터 입력, 엑셀 정리, 사내 시스템 조작 등 <b>"사람만 할 수 있었던" PC 작업을 AI가 대신</b>.</div>
+        </div>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-title">💡 "다음 단어 맞추기"와의 연결</div>
+        <div class="insight-text">텍스트에서 "다음 단어"를 맞추듯, 화면에서 <b>"다음 행동"을 맞추는 것</b>. 이전의 행동들과 현재 화면을 보고 "다음에 할 가장 적절한 행동은?"을 예측 → 이것도 결국 <b>조건부 확률 분포에서의 샘플링</b>. CH2에서 배운 원리가 텍스트를 넘어 시각과 행동으로 확장된 것.</div>
+      </div>
+
+      <div class="explain" style="border-left-color:var(--cyan)"><span class="hl">CEO 시사점:</span> API가 없는 레거시 사내 시스템도 AI가 조작 가능. 반복적인 PC 작업(데이터 입력, 양식 작성, 시스템 간 이관)을 자동화하는 가장 범용적인 방법.</div>
+    </div>
+  </div>
+
+  <!-- TAB 3: Deep Research -->
+  <div class="part" id="p3">
+    <div class="section">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--orange))"></div>
+      <div class="uc-header">
+        <div class="uc-title" style="color:var(--blue)">🔍 딥 리서치 (Deep Research)</div>
+        <div class="uc-sub">복잡한 조사를 AI가 수십 분 동안 자율적으로 수행하고 보고서를 작성</div>
+        <div class="uc-products"><span class="uc-product">ChatGPT Deep Research</span><span class="uc-product">Gemini Deep Research</span><span class="uc-product">Claude Research</span></div>
+      </div>
+
+      <div class="flow-box">
+        <div class="flow-title">🔄 동작 원리</div>
+        <div class="flow-steps">
+          <div class="flow-step" style="border-top-color:var(--blue)"><div class="f-ico">❓</div><div class="f-name">질문 분석</div><div class="f-desc">연구 질문을<br>하위 질문 분해</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="border-top-color:var(--green)"><div class="f-ico">🌐</div><div class="f-name">웹 검색</div><div class="f-desc">수십 개 소스<br>자동 탐색</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="border-top-color:var(--purple)"><div class="f-ico">📖</div><div class="f-name">내용 분석</div><div class="f-desc">각 문서를 읽고<br>핵심 추출</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="border-top-color:var(--orange)"><div class="f-ico">🧠</div><div class="f-name">종합 추론</div><div class="f-desc">정보를 교차검증<br>결론 도출</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="border-top-color:var(--cyan)"><div class="f-ico">📄</div><div class="f-name">보고서 생성</div><div class="f-desc">구조화된 리포트<br>출처 포함</div></div>
+        </div>
+      </div>
+
+      <div class="uc-grid">
+        <div class="uc-box" style="border-top-color:var(--blue)">
+          <div class="uc-box-title" style="color:var(--blue)">🎓 LLM이 학습한 것</div>
+          <div class="uc-box-text"><b>인터넷 전체의 텍스트</b>를 학습하여 "어떤 정보가 어디에 있는지", "신뢰할 수 있는 소스는 무엇인지"에 대한 감각을 보유. "다음 단어 맞추기"로 학술 논문, 보고서, 기사를 학습 → <b>좋은 리서치 보고서의 구조와 논리 전개 패턴</b>을 확률로 체득.</div>
+        </div>
+        <div class="uc-box" style="border-top-color:var(--orange)">
+          <div class="uc-box-title" style="color:var(--orange)">🔑 에이전트인 이유</div>
+          <div class="uc-box-text">한 번 질문하면 <b>수십 분 동안 자율적으로</b> 검색 → 읽기 → 분석 → 재검색 반복. 사람이 개입 없이 <b>30~100개 이상의 소스</b>를 탐색하고 종합. CH6 에이전트의 "자율 판단" 능력이 리서치에 적용된 것.</div>
+        </div>
+      </div>
+
+      <div class="explain" style="border-left-color:var(--blue)"><span class="hl">CEO 시사점:</span> 경쟁사 분석, 시장 조사, 기술 동향, 규제 변화 추적. 주니어 애널리스트가 1주일 걸릴 리서치를 AI가 30분에 초안 완성. 임원 보고 자료의 기초 조사에 즉시 활용 가능.</div>
+    </div>
+  </div>
+
+  <!-- TAB 4: Data Analysis -->
+  <div class="part" id="p4">
+    <div class="section">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green),var(--cyan))"></div>
+      <div class="uc-header">
+        <div class="uc-title" style="color:var(--green)">📊 데이터 분석 & 의사결정 지원</div>
+        <div class="uc-sub">자연어로 질문하면 데이터를 분석하고 차트와 인사이트를 생성</div>
+        <div class="uc-products"><span class="uc-product">ChatGPT Advanced Data Analysis</span><span class="uc-product">Claude Artifacts</span><span class="uc-product">Julius AI</span></div>
+      </div>
+
+      <div class="flow-box">
+        <div class="flow-title">🔄 동작 원리</div>
+        <div class="flow-steps">
+          <div class="flow-step" style="border-top-color:var(--green)"><div class="f-ico">📁</div><div class="f-name">데이터 업로드</div><div class="f-desc">엑셀, CSV<br>PDF 첨부</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="border-top-color:var(--blue)"><div class="f-ico">💬</div><div class="f-name">자연어 질문</div><div class="f-desc">"이탈률 높은<br>세그먼트 분석"</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="border-top-color:var(--purple)"><div class="f-ico">🐍</div><div class="f-name">코드 생성 & 실행</div><div class="f-desc">Python 분석 코드<br>자동 작성+실행</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="border-top-color:var(--orange)"><div class="f-ico">📈</div><div class="f-name">시각화</div><div class="f-desc">차트, 그래프<br>대시보드 생성</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="border-top-color:var(--cyan)"><div class="f-ico">💡</div><div class="f-name">인사이트 도출</div><div class="f-desc">자연어로<br>결론 설명</div></div>
+        </div>
+      </div>
+
+      <div class="uc-grid">
+        <div class="uc-box" style="border-top-color:var(--green)">
+          <div class="uc-box-title" style="color:var(--green)">🎓 LLM이 학습한 것</div>
+          <div class="uc-box-text">수백만 개의 <b>데이터 분석 코드(Python/R)</b>와 그 결과 해석을 학습. "이 데이터에서 이런 질문을 하면 → 이런 분석을 하고 → 이런 결론을 내린다"는 패턴 전체를 학습. 자연어 질문 → 코드 → 시각화 → 해석의 <b>전체 파이프라인</b>을 확률로 체득.</div>
+        </div>
+        <div class="uc-box" style="border-top-color:var(--orange)">
+          <div class="uc-box-title" style="color:var(--orange)">🔑 에이전트인 이유</div>
+          <div class="uc-box-text">코드 생성 → <b>직접 실행</b> → 결과 확인 → 추가 분석 자율 반복. 분석 결과를 보고 "이 패턴이 이상하니 다른 각도로 분석해보겠다"고 <b>스스로 판단</b>. 코드 에러가 나면 자동 수정 후 재실행.</div>
+        </div>
+      </div>
+
+      <div class="explain" style="border-left-color:var(--green)"><span class="hl">CEO 시사점:</span> 데이터 분석 전문가가 없어도, 엑셀 파일을 올리고 "분석해줘"라고 말하면 차트와 인사이트 완성. SQL 쿼리를 몰라도 자연어로 데이터베이스 조회 가능. 의사결정 속도가 근본적으로 달라짐.</div>
+    </div>
+  </div>
+
+  <!-- TAB 5: Creative -->
+  <div class="part" id="p5">
+    <div class="section">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--pink),var(--orange))"></div>
+      <div class="uc-header">
+        <div class="uc-title" style="color:var(--pink)">🎨 콘텐츠 & 크리에이티브</div>
+        <div class="uc-sub">텍스트, 이미지, 영상, 음악 — 모든 형태의 콘텐츠를 AI가 생성</div>
+        <div class="uc-products"><span class="uc-product">DALL-E / Midjourney</span><span class="uc-product">Sora (영상)</span><span class="uc-product">Suno (음악)</span><span class="uc-product">Gamma (PPT)</span></div>
+      </div>
+
+      <div class="flow-box">
+        <div class="flow-title">🔄 동작 원리 — 각 모달리티별</div>
+        <div class="flow-steps">
+          <div class="flow-step" style="border-top-color:var(--blue)"><div class="f-ico">📝</div><div class="f-name">텍스트</div><div class="f-desc">다음 토큰 예측<br>→ 문장 생성</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="border-top-color:var(--pink)"><div class="f-ico">🖼️</div><div class="f-name">이미지</div><div class="f-desc">노이즈에서<br>→ 픽셀 복원</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="border-top-color:var(--orange)"><div class="f-ico">🎬</div><div class="f-name">영상</div><div class="f-desc">프레임별 이미지<br>→ 연속 생성</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="border-top-color:var(--green)"><div class="f-ico">🎵</div><div class="f-name">음악</div><div class="f-desc">다음 음표 예측<br>→ 멜로디 생성</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="border-top-color:var(--purple)"><div class="f-ico">📊</div><div class="f-name">PPT</div><div class="f-desc">내용→레이아웃<br>→ 디자인 생성</div></div>
+        </div>
+      </div>
+
+      <div class="uc-grid">
+        <div class="uc-box" style="border-top-color:var(--pink)">
+          <div class="uc-box-title" style="color:var(--pink)">🎓 LLM이 학습한 것</div>
+          <div class="uc-box-text">텍스트: 수조 문장에서 <b>"다음 단어 맞추기"</b>. 이미지: 수억 장의 이미지+설명 쌍에서 <b>"이 텍스트 → 이런 이미지"</b> 패턴 학습 (Diffusion). 핵심: 모달리티가 다를 뿐, <b>결국 "다음 요소를 예측"하는 동일한 원리</b>의 확장.</div>
+        </div>
+        <div class="uc-box" style="border-top-color:var(--orange)">
+          <div class="uc-box-title" style="color:var(--orange)">🔑 다른 모달리티, 같은 원리</div>
+          <div class="uc-box-text">텍스트: 다음 <b>토큰</b> 예측 → 문장.<br>이미지: 다음 <b>픽셀/패치</b> 예측 → 그림.<br>음악: 다음 <b>음표/파형</b> 예측 → 멜로디.<br>모두 <b>확률분포를 학습하고 샘플링</b>하는 동일 구조. CH1~CH2에서 배운 원리가 모든 곳에 적용됨.</div>
+        </div>
+      </div>
+
+      <div class="explain" style="border-left-color:var(--pink)"><span class="hl">CEO 시사점:</span> 마케팅 소재(이미지·카피), 프레젠테이션, 영상 콘텐츠의 초안 생성 속도가 수십 배 빨라짐. 크리에이티브 팀의 역할이 "생성"에서 "기획+검수"로 전환.</div>
+    </div>
+  </div>
+
+  <div class="footer">CEO AI Intelligence · Chapter 08 Agent Use Cases · 2026</div>
+</div>
+
+<script>
+var tabBgs=["linear-gradient(135deg,#8B5CF6,#3B82F6)","linear-gradient(135deg,#06B6D4,#10B981)","linear-gradient(135deg,#3B82F6,#F59E0B)","linear-gradient(135deg,#10B981,#06B6D4)","linear-gradient(135deg,#EC4899,#F59E0B)"];
+function sT(n){for(var i=1;i<=5;i++){document.getElementById('t'+i).className=i===n?'tab active':'tab';document.getElementById('t'+i).style.background=i===n?tabBgs[i-1]:'';document.getElementById('p'+i).className=i===n?'part show':'part'}}
+</script>
+</body>
+</html>
