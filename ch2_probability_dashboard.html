@@ -74,6 +74,8 @@
 .explain{font-size:.7rem;color:var(--dimmed);line-height:1.6;padding:.5rem;background:rgba(0,0,0,.04);border-radius:7px;border-left:3px solid var(--dimmed);margin-top:.4rem}.explain .hl{color:var(--white);font-weight:700}
 .footer{text-align:center;padding:.75rem 0;color:var(--dimmed);font-size:.55rem;border-top:1px solid rgba(0,0,0,.05);margin-top:.5rem}
 @media(max-width:750px){.insight-grid,.temp-row{grid-template-columns:1fr}.dice-header{flex-direction:column}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
 </style>
 </head>
 <body>
@@ -131,49 +133,34 @@
     </div>
   </div>
 
-  <!-- Section 2: Why prediction = intelligence -->
+  <!-- Section 2: Why next-word prediction = intelligence -->
   <div class="section">
     <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--purple))"></div>
-    <div style="font-size:1rem;font-weight:900;margin-bottom:.1rem">💡 핵심 통찰: 왜 "다음 단어 맞추기"가 지능이 되는가</div>
-    <div style="font-size:.75rem;color:var(--muted);margin-bottom:.75rem">빈칸을 정확히 채우려면, 점점 더 깊은 수준의 지식이 필요합니다. 카드를 클릭해보세요.</div>
+    <div style="font-size:1rem;font-weight:900;margin-bottom:.1rem">💡 "다음 단어 맞추기"가 왜 지능이 되는가</div>
+    <div style="font-size:.75rem;color:var(--muted);margin-bottom:.75rem">다음 단어를 정확히 예측하려면, 점점 더 깊은 수준의 이해가 필요합니다</div>
 
-    <div class="insight-grid" id="insightGrid">
-      <div class="insight-card" id="ic-0" onclick="revealInsight(0)">
-        <div class="insight-icon">🌧️</div>
-        <div class="insight-q">"비가 와서 우산을 <span class="insight-blank" id="ib-0">???</span>"</div>
-        <div class="insight-need"><b>필요 능력:</b> 인과관계 이해<br>비 → 우산이라는 일상적 연결</div>
-        <div class="depth-bar"><div class="depth-seg" style="background:var(--green)"></div><div class="depth-seg" style="background:var(--bg3)"></div><div class="depth-seg" style="background:var(--bg3)"></div><div class="depth-seg" style="background:var(--bg3)"></div></div>
-        <div style="font-size:.55rem;color:var(--dimmed);font-family:var(--mono)">지식 깊이: ★☆☆☆</div>
-      </div>
-      <div class="insight-card" id="ic-1" onclick="revealInsight(1)">
-        <div class="insight-icon">📊</div>
-        <div class="insight-q">"고객 이탈률이 상승하여<br>리텐션 전략을 <span class="insight-blank" id="ib-1">???</span>"</div>
-        <div class="insight-need"><b>필요 능력:</b> 비즈니스 전략 이해<br>이탈률↑ → 대응 전략이라는 경영 판단</div>
-        <div class="depth-bar"><div class="depth-seg" style="background:var(--orange)"></div><div class="depth-seg" style="background:var(--orange)"></div><div class="depth-seg" style="background:var(--bg3)"></div><div class="depth-seg" style="background:var(--bg3)"></div></div>
-        <div style="font-size:.55rem;color:var(--dimmed);font-family:var(--mono)">지식 깊이: ★★☆☆</div>
-      </div>
-      <div class="insight-card" id="ic-2" onclick="revealInsight(2)">
-        <div class="insight-icon">📡</div>
-        <div class="insight-q">"AI 기반 네트워크 최적화로<br>트래픽 처리 효율이 <span class="insight-blank" id="ib-2">???</span>"</div>
-        <div class="insight-need"><b>필요 능력:</b> 통신 기술 + AI 지식<br>AI+네트워크 최적화의 결과를 추론</div>
-        <div class="depth-bar"><div class="depth-seg" style="background:var(--red)"></div><div class="depth-seg" style="background:var(--red)"></div><div class="depth-seg" style="background:var(--red)"></div><div class="depth-seg" style="background:var(--bg3)"></div></div>
-        <div style="font-size:.55rem;color:var(--dimmed);font-family:var(--mono)">지식 깊이: ★★★☆</div>
-      </div>
-      <div class="insight-card" id="ic-3" onclick="revealInsight(3)">
-        <div class="insight-icon">🧬</div>
-        <div class="insight-q">"CRISPR-Cas9으로 p53 유전자를<br>편집하면 종양 억제가 <span class="insight-blank" id="ib-3">???</span>"</div>
-        <div class="insight-need"><b>필요 능력:</b> 생명과학 + 논리적 추론<br>유전자 기능과 결과를 과학적으로 추론</div>
-        <div class="depth-bar"><div class="depth-seg" style="background:var(--purple)"></div><div class="depth-seg" style="background:var(--purple)"></div><div class="depth-seg" style="background:var(--purple)"></div><div class="depth-seg" style="background:var(--purple)"></div></div>
-        <div style="font-size:.55rem;color:var(--dimmed);font-family:var(--mono)">지식 깊이: ★★★★</div>
-      </div>
+    <div style="display:flex;gap:3px;margin-bottom:.3rem" id="lvBar"></div>
+    <div style="font-family:var(--mono);font-size:.65rem;color:var(--dimmed);text-align:center;margin-bottom:.5rem" id="lvLabel">▶ 버튼을 눌러 단계별로 진행하세요</div>
+
+    <div id="lvContent" style="min-height:200px"></div>
+
+    <div style="display:flex;justify-content:center;gap:.5rem;margin:.5rem 0">
+      <button onclick="nextLevel()" id="lvBtn" style="background:linear-gradient(135deg,var(--blue),var(--purple));border:none;color:#fff;padding:.45rem 1.2rem;border-radius:7px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:var(--font)">▶ 다음 단계</button>
+      <button onclick="resetLevels()" style="background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.08);color:var(--muted);padding:.4rem .8rem;border-radius:7px;font-size:.65rem;cursor:pointer;font-family:var(--font)">↺</button>
     </div>
-    <div class="ctrl"><button class="btn btn-go" onclick="revealAll()">▶ 전체 정답 보기</button></div>
 
-    <div class="insight-conclusion">
-      <div class="big">다음 단어 맞추기를 극한까지 추구하면,<br>결국 세상을 이해하게 된다</div>
-      <div class="sub">
-        빈칸이 어려울수록 → 더 깊은 지식과 추론이 필요<br>
-        LLM은 수조 문장에서 이 "빈칸 맞추기"를 반복하여 → <b style="color:var(--cyan)">세상의 지식을 확률의 형태로 저장</b>
+    <div id="finalConclusion" style="display:none;margin-top:.5rem">
+      <div style="background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.12);border-radius:10px;padding:1rem;text-align:center">
+        <div style="font-size:1.05rem;font-weight:900;color:var(--blue);line-height:1.7;margin-bottom:.3rem">
+          "다음 단어 맞추기"를 극한까지 밀어붙이면<br>
+          AI는 결국 세상을 이해하게 된다
+        </div>
+        <div style="font-size:.78rem;color:var(--muted);line-height:1.6">
+          다음 단어를 정확히 예측하려면 → 인과관계, 상식, 전문지식, 논리적 추론이 모두 필요<br>
+          AI는 수조 문장에서 이 예측을 반복하여 → <b style="color:var(--blue)">세상의 지식을 확률의 형태로 저장</b><br>
+          더 어려운 다음 단어를 맞추기 위해 → <b style="color:var(--orange)">더 큰 모델, 더 많은 데이터, 더 많은 연산</b>이 필요<br>
+          이것이 AI 산업에 수조 원이 투입되는 이유입니다
+        </div>
       </div>
     </div>
   </div>
@@ -183,109 +170,199 @@
 
 <script>
 function delay(ms){return new Promise(r=>setTimeout(r,ms))}
-const STEPS=5;
-const tokens=[
+
+// ===== MAIN SIMULATION: Token-by-token with dice =====
+var STEPS=5;
+var tokens=[
   {word:"대한민국의",prob:.80,context:"[시작]",topK:[{w:"대한민국의",p:80},{w:"한국의",p:8},{w:"우리나라의",p:5},{w:"서울의",p:2},{w:"일본의",p:.5}]},
   {word:" 수도는",prob:.90,context:"대한민국의 ___",topK:[{w:"수도는",p:90},{w:"경제는",p:3},{w:"인구는",p:2},{w:"대통령은",p:1.5},{w:"문화는",p:.3}]},
   {word:" 서울",prob:.95,context:"대한민국의 수도는 ___",topK:[{w:"서울",p:95},{w:"부산",p:1.5},{w:"대전",p:.5},{w:"인천",p:.3},{w:"바나나",p:.0001}]},
   {word:"이",prob:.85,context:"...수도는 서울___",topK:[{w:"이",p:85},{w:"에",p:5},{w:"은",p:3},{w:"을",p:1},{w:"와",p:.5}]},
-  {word:"다.",prob:.92,context:"...서울이___",topK:[{w:"다.",p:92},{w:"며",p:3},{w:"라고",p:1.5},{w:"지만",p:.8},{w:"니까",p:.3}]},
+  {word:"다.",prob:.92,context:"...서울이___",topK:[{w:"다.",p:92},{w:"며",p:3},{w:"라고",p:1.5},{w:"지만",p:.8},{w:"니까",p:.3}]}
 ];
-let curIdx=-1,cumProb=1;
+var curIdx=-1;
+var cumProb=1;
 
-// Dice pie chart
-const pieCanvas=document.getElementById('dicePie');
-const pieCtx=pieCanvas.getContext('2d');
+var pieCanvas=document.getElementById('dicePie');
+var pieCtx=pieCanvas.getContext('2d');
+
 function drawPie(topK){
   pieCtx.clearRect(0,0,180,180);
-  const cx=90,cy=90,r=80;
-  // Draw pie slices
-  let startAngle=-Math.PI/2;
-  const total=100;
-  const colors=['#06B6D4','#3B82F6','#8B5CF6','#64748B','#334155'];
-  const others=total-topK.reduce((s,k)=>s+k.p,0);
-  const slices=[...topK.map(k=>k.p),others>0?others:0];
-  slices.forEach((p,i)=>{
-    const sliceAngle=(p/total)*Math.PI*2;
+  var cx=90,cy=90,r=80;
+  var startAngle=-Math.PI/2;
+  var total=100;
+  var colors=['#06B6D4','#3B82F6','#8B5CF6','#64748B','#334155'];
+  var others=total-topK.reduce(function(s,k){return s+k.p},0);
+  var slices=topK.map(function(k){return k.p});
+  slices.push(others>0?others:0);
+  slices.forEach(function(p,i){
+    var sliceAngle=(p/total)*Math.PI*2;
     pieCtx.beginPath();pieCtx.moveTo(cx,cy);pieCtx.arc(cx,cy,r,startAngle,startAngle+sliceAngle);pieCtx.closePath();
     pieCtx.fillStyle=i<colors.length?colors[i]:'#E2E8F0';pieCtx.fill();
     pieCtx.strokeStyle='#F8FAFC';pieCtx.lineWidth=1.5;pieCtx.stroke();
     startAngle+=sliceAngle;
   });
-  // Center hole
   pieCtx.beginPath();pieCtx.arc(cx,cy,30,0,Math.PI*2);pieCtx.fillStyle='#F1F5F9';pieCtx.fill();
 }
 
-function buildStepBar(){const e=document.getElementById('stepBar');e.innerHTML='';for(let i=0;i<STEPS;i++)e.innerHTML+=`<div class="sd" id="sd-${i}"></div>`}
-function setStep(i,t){for(let j=0;j<STEPS;j++)document.getElementById(`sd-${j}`).className=j<i?'sd done':j===i?'sd cur':'sd';document.getElementById('curStep').textContent=t}
-function buildGenDisplay(){document.getElementById('genDisplay').innerHTML=tokens.map((t,i)=>`<span class="gen-word" id="gw-${i}">${t.word}</span>`).join('')+'<span class="gen-cursor" id="gc"></span>'}
-function buildFormula(){const el=document.getElementById('formulaRow');el.innerHTML='P = ';tokens.forEach((t,i)=>{if(i>0)el.innerHTML+=`<span class="f-mul" id="fm-${i}">×</span>`;el.innerHTML+=`<span class="f-term" id="ft-${i}">${t.prob}</span>`})}
-
-function showDice(idx){
-  const t=tokens[idx];
-  document.getElementById('diceCtx').innerHTML=`현재 문맥: <b>"${t.context}"</b>`;
-  const bars=document.getElementById('diceBars');bars.innerHTML='';
-  const maxP=t.topK[0].p;
-  t.topK.forEach((k,i)=>{
-    const color=i===0?'var(--cyan)':i<3?'var(--blue)':'var(--dimmed)';
-    bars.innerHTML+=`<div class="dice-row"><span class="dice-word" style="color:${color}">"${k.w}"</span><div class="dice-track"><div class="dice-fill" id="df-${i}" style="background:${color};color:var(--bg)">${k.p>=1?k.p+'%':k.p+'%'}</div></div><span class="dice-pct">${k.p>=1?k.p+'%':k.p+'%'}</span></div>`;
+function buildStepBar(){
+  var e=document.getElementById('stepBar');e.innerHTML='';
+  for(var i=0;i<STEPS;i++) e.innerHTML+='<div class="sd" id="sd-'+i+'"></div>';
+}
+function setStep(i,t){
+  for(var j=0;j<STEPS;j++) document.getElementById('sd-'+j).className=j<i?'sd done':j===i?'sd cur':'sd';
+  document.getElementById('curStep').textContent=t;
+}
+function buildGenDisplay(){
+  document.getElementById('genDisplay').innerHTML=tokens.map(function(t,i){return '<span class="gen-word" id="gw-'+i+'">'+t.word+'</span>'}).join('')+'<span class="gen-cursor" id="gc"></span>';
+}
+function buildFormula(){
+  var el=document.getElementById('formulaRow');el.innerHTML='P = ';
+  tokens.forEach(function(t,i){
+    if(i>0) el.innerHTML+='<span class="f-mul" id="fm-'+i+'">×</span>';
+    el.innerHTML+='<span class="f-term" id="ft-'+i+'">'+t.prob+'</span>';
   });
-  document.getElementById('diceEtc').textContent=`... 나머지 ~99,995개 토큰이 남은 면을 나눠 가짐`;
-  setTimeout(()=>t.topK.forEach((k,i)=>{document.getElementById(`df-${i}`).style.width=Math.max(k.p/maxP*80,1)+'%'}),50);
+}
+function showDice(idx){
+  var t=tokens[idx];
+  document.getElementById('diceCtx').innerHTML='현재 문맥: <b>"'+t.context+'"</b>';
+  var bars=document.getElementById('diceBars');bars.innerHTML='';
+  var maxP=t.topK[0].p;
+  t.topK.forEach(function(k,i){
+    var color=i===0?'var(--cyan)':i<3?'var(--blue)':'var(--dimmed)';
+    bars.innerHTML+='<div class="dice-row"><span class="dice-word" style="color:'+color+'">"'+k.w+'"</span><div class="dice-track"><div class="dice-fill" id="df-'+i+'" style="background:'+color+';color:var(--bg)">'+(k.p>=1?k.p+'%':k.p+'%')+'</div></div><span class="dice-pct">'+(k.p>=1?k.p+'%':k.p+'%')+'</span></div>';
+  });
+  document.getElementById('diceEtc').textContent='... 나머지 ~99,995개 토큰이 남은 면을 나눠 가짐';
+  setTimeout(function(){
+    t.topK.forEach(function(k,i){
+      document.getElementById('df-'+i).style.width=Math.max(k.p/maxP*80,1)+'%';
+    });
+  },50);
   drawPie(t.topK);
-  document.getElementById('diceSelected').className='dice-selected';document.getElementById('diceSelected').innerHTML='';
+  document.getElementById('diceSelected').className='dice-selected';
+  document.getElementById('diceSelected').innerHTML='';
 }
 
-async function nextStep(){
+function nextStep(){
   curIdx++;
-  if(curIdx>=STEPS){resetMain();return}
+  if(curIdx>=STEPS){resetMain();return;}
   document.getElementById('mainBtn').disabled=true;
-  const t=tokens[curIdx];
-  setStep(curIdx,`토큰 ${curIdx+1}/${STEPS}: "${t.word.trim()}"`);
+  var t=tokens[curIdx];
+  setStep(curIdx,'토큰 '+(curIdx+1)+'/'+STEPS+': "'+t.word.trim()+'"');
   showDice(curIdx);
-  await delay(700);
-  document.getElementById('diceSelected').innerHTML=`🎲 굴림 → <span style="color:var(--cyan);font-weight:900">"${t.word.trim()}"</span> 선택! (${t.prob*100}%)`;
-  document.getElementById('diceSelected').classList.add('show');
-  await delay(350);
-  document.getElementById(`gw-${curIdx}`).classList.add('active');
-  await delay(250);document.getElementById(`gw-${curIdx}`).className='gen-word done';
-  document.getElementById(`ft-${curIdx}`).classList.add('active');
-  if(curIdx>0)document.getElementById(`fm-${curIdx}`).classList.add('show');
-  await delay(200);document.getElementById(`ft-${curIdx}`).className='f-term done';
-  cumProb*=t.prob;
-  if(curIdx===STEPS-1){
-    document.getElementById('fResult').innerHTML=`= <span style="color:var(--green);font-size:1rem">${(cumProb*100).toFixed(1)}%</span> <span style="color:var(--dimmed);font-size:.65rem">← 자연스러운 문장 = 높은 확률</span>`;
-    document.getElementById('fResult').classList.add('show');
-    document.getElementById('gc').style.display='none';
-    setStep(STEPS,'✅ 전체 생성 완료!');
-    document.getElementById('mainBtn').textContent='↺ 다시 시작';
-  }
-  document.getElementById('mainBtn').disabled=false;
+  setTimeout(function(){
+    document.getElementById('diceSelected').innerHTML='🎲 굴림 → <span style="color:var(--cyan);font-weight:900">"'+t.word.trim()+'"</span> 선택! ('+(t.prob*100)+'%)';
+    document.getElementById('diceSelected').classList.add('show');
+    setTimeout(function(){
+      document.getElementById('gw-'+curIdx).classList.add('active');
+      setTimeout(function(){
+        document.getElementById('gw-'+curIdx).className='gen-word done';
+        document.getElementById('ft-'+curIdx).classList.add('active');
+        if(curIdx>0) document.getElementById('fm-'+curIdx).classList.add('show');
+        setTimeout(function(){
+          document.getElementById('ft-'+curIdx).className='f-term done';
+          cumProb*=t.prob;
+          if(curIdx===STEPS-1){
+            document.getElementById('fResult').innerHTML='= <span style="color:var(--green);font-size:1rem">'+(cumProb*100).toFixed(1)+'%</span> <span style="color:var(--dimmed);font-size:.65rem">← 자연스러운 문장 = 높은 확률</span>';
+            document.getElementById('fResult').classList.add('show');
+            document.getElementById('gc').style.display='none';
+            setStep(STEPS,'✅ 전체 생성 완료!');
+            document.getElementById('mainBtn').textContent='↺ 다시 시작';
+          }
+          document.getElementById('mainBtn').disabled=false;
+        },200);
+      },250);
+    },350);
+  },700);
 }
 
 function resetMain(){
   curIdx=-1;cumProb=1;buildStepBar();buildGenDisplay();buildFormula();
   setStep(-1,'▶ 시작 버튼을 눌러주세요');
   document.getElementById('diceCtx').innerHTML='문맥이 여기 표시됩니다';
-  document.getElementById('diceBars').innerHTML='';document.getElementById('diceEtc').textContent='';
-  document.getElementById('diceSelected').className='dice-selected';document.getElementById('diceSelected').innerHTML='';
-  document.getElementById('fResult').className='f-result';document.getElementById('fResult').innerHTML='';
-  document.getElementById('mainBtn').textContent='▶ 다음 토큰 생성';document.getElementById('mainBtn').disabled=false;
-  document.getElementById('gc').style.display='';
+  document.getElementById('diceBars').innerHTML='';
+  document.getElementById('diceEtc').textContent='';
+  document.getElementById('diceSelected').className='dice-selected';
+  document.getElementById('diceSelected').innerHTML='';
+  document.getElementById('fResult').className='f-result';
+  document.getElementById('fResult').innerHTML='';
+  document.getElementById('mainBtn').textContent='▶ 다음 토큰 생성';
+  document.getElementById('mainBtn').disabled=false;
+  var gc=document.getElementById('gc');if(gc)gc.style.display='';
   pieCtx.clearRect(0,0,180,180);
 }
 
-// Insights
-const insightAnswers=["챙겼다","강화했다","크게 향상되었다","회복된다"];
-function revealInsight(idx){
-  document.getElementById(`ib-${idx}`).textContent=insightAnswers[idx];
-  document.getElementById(`ib-${idx}`).classList.add('revealed');
-  document.getElementById(`ic-${idx}`).classList.add('lit');
-  document.getElementById(`ic-${idx}`).querySelectorAll('.depth-seg').forEach(s=>{if(s.style.background!=='var(--bg3)')s.classList.add('lit')});
+// ===== Level-up Journey =====
+var levels = [
+  {title:"Level 1 · 단순 연결",color:"var(--green)",context:"대한민국의 수도는",next:"서울",need:"📖 사실을 기억하면 됨",insight:"이건 검색엔진도 할 수 있다. 아직 '지능'은 아님.",icon:"📖",barColor:"#10B981",difficulty:"★☆☆☆☆"},
+  {title:"Level 2 · 인과관계 추론",color:"var(--blue)",context:"비가 와서 우산을",next:"챙겼다",need:"🔗 '비 → 우산' 인과관계를 이해해야",insight:"단순 암기가 아닌, 원인과 결과의 관계를 이해해야 맞출 수 있다.",icon:"🔗",barColor:"#3B82F6",difficulty:"★★☆☆☆"},
+  {title:"Level 3 · 전문 지식 + 판단",color:"var(--purple)",context:"고객 이탈률이 상승하여 리텐션 전략을",next:"강화했다",need:"🏢 비즈니스 용어 + '이탈↑ → 리텐션↑' 전략적 판단",insight:"다음 단어를 맞추려면 경영학 지식과 전략적 사고가 필요. 단순 패턴이 아닌 '이해'가 시작됨.",icon:"🏢",barColor:"#8B5CF6",difficulty:"★★★☆☆"},
+  {title:"Level 4 · 다단계 추론",color:"var(--orange)",context:"데이터 사용량은 증가하나 ARPU가 정체된 상황에서, 통신사의 B2B 전환 핵심 전략은",next:"AI 기반 네트워크 슬라이싱",need:"📊 통신 + 재무 + 전략을 종합하여 새로운 결론 도출",insight:"여러 사실을 연결하고 새로운 답을 추론. 이건 사실상 '생각하는 것'과 같다.",icon:"📊",barColor:"#F59E0B",difficulty:"★★★★☆"},
+  {title:"Level 5 · 전문가 수준 추론",color:"var(--red)",context:"CRISPR-Cas9으로 p53 유전자를 편집하면 종양 억제 기능이",next:"회복된다",need:"🧬 생명과학 + 유전자 기능 + 논리적 추론 종합",insight:"이 수준의 다음 단어를 맞추려면, AI는 전문가 수준의 지식과 추론 능력을 갖춰야 한다.",icon:"🧬",barColor:"#EF4444",difficulty:"★★★★★"}
+];
+
+var currentLevel = -1;
+
+function buildLvBar(){
+  var bar=document.getElementById('lvBar');bar.innerHTML='';
+  for(var i=0;i<levels.length;i++) bar.innerHTML+='<div id="lb'+i+'" style="flex:1;height:6px;border-radius:3px;background:var(--bg3);transition:all .3s"></div>';
 }
-async function revealAll(){for(let i=0;i<4;i++){await delay(400);revealInsight(i)}}
+
+function renderLevel(idx){
+  var lv=levels[idx];
+  var el=document.getElementById('lvContent');
+  el.innerHTML=
+    '<div style="background:var(--bg3);border-radius:10px;padding:1rem;border-left:4px solid '+lv.color+';animation:fadeIn .4s">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">'+
+        '<span style="font-size:.9rem;font-weight:900;color:'+lv.color+'">'+lv.icon+' '+lv.title+'</span>'+
+        '<span style="font-family:var(--mono);font-size:.65rem;color:var(--dimmed)">'+lv.difficulty+'</span>'+
+      '</div>'+
+      '<div style="background:var(--bg2);border-radius:8px;padding:.6rem .8rem;margin-bottom:.5rem">'+
+        '<div style="font-size:.6rem;color:var(--dimmed);margin-bottom:.25rem">문맥 (이전 토큰들):</div>'+
+        '<div style="font-size:.9rem;color:var(--white);line-height:1.6">"'+lv.context+
+          ' <span style="display:inline-block;padding:.15rem .5rem;border-radius:5px;background:rgba(6,182,212,.12);color:var(--cyan);border:1px solid rgba(6,182,212,.25);font-weight:900;font-size:.95rem">'+lv.next+'</span>"'+
+        '</div>'+
+        '<div style="font-size:.55rem;color:var(--dimmed);margin-top:.2rem">↑ AI가 예측해야 할 "다음 단어"</div>'+
+      '</div>'+
+      '<div style="background:var(--bg2);border-radius:7px;padding:.5rem .6rem;margin-bottom:.5rem;border-top:2px solid '+lv.color+'">'+
+        '<div style="font-size:.6rem;color:var(--dimmed);margin-bottom:.1rem">이 다음 단어를 맞추려면?</div>'+
+        '<div style="font-size:.78rem;font-weight:700;color:var(--white)">'+lv.need+'</div>'+
+      '</div>'+
+      '<div style="background:rgba(0,0,0,.03);border-radius:6px;padding:.45rem .55rem;font-size:.73rem;color:var(--muted);line-height:1.55;border-left:3px solid '+lv.color+'">'+
+        '<b style="color:var(--white)">→</b> '+lv.insight+
+      '</div>'+
+    '</div>';
+}
+
+function nextLevel(){
+  currentLevel++;
+  if(currentLevel>=levels.length){
+    document.getElementById('finalConclusion').style.display='block';
+    document.getElementById('lvLabel').textContent='✅ 전체 완료';
+    document.getElementById('lvBtn').textContent='↺ 처음부터';
+    document.getElementById('finalConclusion').scrollIntoView({behavior:'smooth',block:'nearest'});
+    currentLevel=levels.length;
+    return;
+  }
+  if(currentLevel>levels.length){resetLevels();return;}
+  var lv=levels[currentLevel];
+  document.getElementById('lb'+currentLevel).style.background=lv.barColor;
+  document.getElementById('lvLabel').textContent=lv.title+' ('+(currentLevel+1)+'/'+levels.length+')';
+  renderLevel(currentLevel);
+  if(currentLevel===levels.length-1) document.getElementById('lvBtn').textContent='▶ 결론 보기';
+}
+
+function resetLevels(){
+  currentLevel=-1;buildLvBar();
+  document.getElementById('lvLabel').textContent='▶ 버튼을 눌러 단계별로 진행하세요';
+  document.getElementById('lvContent').innerHTML='<div style="text-align:center;padding:2.5rem 1rem;color:var(--dimmed);font-size:.8rem">"다음 단어 맞추기"의 난이도를 올려가며,<br>왜 이것이 결국 지능이 되는지 살펴봅니다</div>';
+  document.getElementById('finalConclusion').style.display='none';
+  document.getElementById('lvBtn').textContent='▶ 다음 단계';
+}
 
 resetMain();
+buildLvBar();
+resetLevels();
 </script>
 </body>
 </html>
