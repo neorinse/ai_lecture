@@ -257,13 +257,13 @@ async function runAgent(){
     // === Phase 1: Glow INPUT ===
     glowOff();
     glowInput(s.inGlow);
-    await delay(400);
+    await delay(1400);
 
     // === Phase 2: Glow PROCESSING ===
     glowProc(s.procGlow);
     if(s.st) setSt(s.st.id,s.st.t,s.st.bg,s.st.c);
     if(s.tool){setTool(s.tool.id,'active');await delay(350);setTool(s.tool.id,'used')}
-    await delay(250);
+    await delay(1250);
 
     // Memory + Context
     addMem(s.mem);
@@ -278,7 +278,7 @@ async function runAgent(){
       addOut(o.cls,o.tag,o.html);
     }
 
-    await delay(300);
+    await delay(1300);
     document.getElementById(`sd-${i}`).className='sd done';
   }
 
